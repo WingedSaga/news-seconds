@@ -69,6 +69,21 @@ alter table public.articles  enable row level security;
 alter table public.comments  enable row level security;
 alter table public.bookmarks enable row level security;
 
+-- Права для роли service_role, под которой работает сервер.
+-- Выдаются явно: полагаться на привилегии по умолчанию нельзя, иначе
+-- запросы падают с ошибкой 42501 «permission denied for table».
+-- Ролям anon и authenticated права не выдаются намеренно: в базу
+-- ходит только сервер, напрямую из браузера доступа быть не должно.
+grant usage on schema public to service_role;
+grant all privileges on all tables in schema public to service_role;
+grant all privileges on all sequences in schema public to service_role;
+grant execute on all functions in schema public to service_role;
+
+-- Тот же набор для таблиц, которые появятся позже.
+alter default privileges in schema public grant all on tables to service_role;
+alter default privileges in schema public grant all on sequences to service_role;
+alter default privileges in schema public grant execute on functions to service_role;
+
 -- Бакет для картинок статей (публичное чтение).
 insert into storage.buckets (id, name, public)
 values ('article-images', 'article-images', true)
