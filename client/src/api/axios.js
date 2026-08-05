@@ -5,7 +5,9 @@ export const TOKEN_KEY = 'ns_token';
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000/api',
   headers: { 'Content-Type': 'application/json' },
-  timeout: 20000,
+  // Бесплатный тариф хостинга усыпляет сервис после простоя: первый запрос
+  // ждёт пробуждения контейнера, это заметно дольше обычного ответа.
+  timeout: 60000,
 });
 
 // Подставляем JWT из localStorage в каждый запрос.

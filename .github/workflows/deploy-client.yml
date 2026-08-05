@@ -37,8 +37,9 @@ jobs:
 
       - name: Сборка
         env:
-          # Адрес развёрнутого backend, задаётся в Settings -> Secrets and variables -> Actions -> Variables
-          VITE_API_URL: ${{ vars.VITE_API_URL }}
+          # Адрес развёрнутого backend. По умолчанию — рабочий сервис на Render;
+          # переопределяется переменной VITE_API_URL в Settings -> Secrets and variables -> Actions -> Variables
+          VITE_API_URL: ${{ vars.VITE_API_URL || 'https://novosti-sekundy-api.onrender.com/api' }}
           # Подпапка GitHub Pages: /<имя-репозитория>/
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
         run: npm run build

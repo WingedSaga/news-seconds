@@ -221,8 +221,9 @@ start `npm start`. Переменные окружения те же, что и 
 ### Клиент на GitHub Pages
 
 1. **Settings → Pages → Build and deployment → Source**: выберите `GitHub Actions`.
-2. **Settings → Secrets and variables → Actions → Variables**: добавьте переменную
-   `VITE_API_URL` со значением `https://<адрес-бэкенда>/api`.
+2. **Settings → Secrets and variables → Actions → Variables**: при необходимости
+   задайте переменную `VITE_API_URL` со значением `https://<адрес-бэкенда>/api`.
+   Если переменной нет, workflow подставит адрес по умолчанию, указанный в нём же.
 3. Отправьте изменения в ветку `main` — workflow
    [`.github/workflows/deploy-client.yml`](.github/workflows/deploy-client.yml)
    соберёт клиент и опубликует его.
