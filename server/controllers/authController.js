@@ -95,20 +95,17 @@ async function register(req, res, next) {
       });
     }
 
-    const result = await mailer.sendVerificationEmail({
-      to: email,
-      username,
-      token: verification.token,
-    });
+    // Письмо уходит в фоне: рукопожатие с SMTP занимает секунды, и держать
+    // на нём HTTP-ответ незачем. Если отправка сорвётся, пользователь
+    // запросит письмо повторно, а причина останется в логах.
+    mailer
+      .sendVerificationEmail({ to: email, username, token: verification.token })
+      .catch((err) => console.error('[auth] письмо при регистрации не ушло:', err.message));
 
-    // Аккаунт создан в любом случае: письмо можно запросить повторно.
     return res.status(201).json({
       requiresVerification: true,
-      emailSent: result.sent,
       email,
-      message: result.sent
-        ? 'Мы отправили письмо со ссылкой для подтверждения адреса'
-        : 'Аккаунт создан, но письмо отправить не удалось. Запросите его повторно.',
+      message: 'Мы отправили письмо со ссылкой для подтверждения адреса',
     });
   } catch (err) {
     next(err);
@@ -248,11 +245,9 @@ async function resendVerification(req, res, next) {
 
     if (updateError) throw updateError;
 
-    await mailer.sendVerificationEmail({
-      to: user.email,
-      username: user.username,
-      token: verification.token,
-    });
+    mailer
+      .sendVerificationEmail({ to: user.email, username: user.username, token: verification.token })
+      .catch((err) => console.error('[auth] повторное письмо не ушло:', err.message));
 
     res.json(genericResponse);
   } catch (err) {
