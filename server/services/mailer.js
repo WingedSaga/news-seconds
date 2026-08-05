@@ -21,6 +21,11 @@ function getTransporter() {
       port: SMTP_PORT,
       secure: SMTP_PORT === 465,
       auth: { user: SMTP_USER, pass: SMTP_PASS },
+      // Без таймаутов недоступный или отфильтрованный SMTP-порт держит
+      // соединение бесконечно, и ошибка никогда не попадает в логи.
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 20000,
     });
   }
   return transporter;
@@ -80,6 +85,22 @@ function verificationTemplate(username, url) {
   return { text, html };
 }
 
+// Проверка учётных данных SMTP при старте: ошибка авторизации должна быть
+// видна сразу в логах, а не всплывать при первой регистрации.
+async function verifyConnection() {
+  const mailer = getTransporter();
+  if (!mailer) return { ok: false, reason: 'disabled' };
+
+  try {
+    await mailer.verify();
+    console.log(`[mailer] SMTP ${SMTP_HOST}:${SMTP_PORT} принял учётные данные ${SMTP_USER}`);
+    return { ok: true };
+  } catch (err) {
+    console.error(`[mailer] SMTP ${SMTP_HOST}:${SMTP_PORT} отклонил подключение:`, err.message);
+    return { ok: false, reason: err.message };
+  }
+}
+
 // Отправка не должна ронять регистрацию: об ошибке сообщаем через результат.
 async function sendVerificationEmail({ to, username, token }) {
   const mailer = getTransporter();
@@ -89,18 +110,19 @@ async function sendVerificationEmail({ to, username, token }) {
   const { text, html } = verificationTemplate(username, url);
 
   try {
-    await mailer.sendMail({
+    const info = await mailer.sendMail({
       from: MAIL_FROM,
       to,
       subject: 'Подтверждение почты — НОВОСТИ СЕКУНДЫ',
       text,
       html,
     });
+    console.log(`[mailer] письмо отправлено на ${to}, ответ сервера: ${info.response}`);
     return { sent: true };
   } catch (err) {
-    console.error('[mailer] не удалось отправить письмо:', err.message);
+    console.error(`[mailer] не удалось отправить письмо на ${to}:`, err.message);
     return { sent: false, reason: 'error' };
   }
 }
 
-module.exports = { isEnabled, sendVerificationEmail, buildVerificationUrl };
+module.exports = { isEnabled, verifyConnection, sendVerificationEmail, buildVerificationUrl };

@@ -46,11 +46,15 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
-  const { isEnabled } = require('./services/mailer');
+  const { isEnabled, verifyConnection } = require('./services/mailer');
   console.log(`[server] НОВОСТИ СЕКУНДЫ API запущен на порту ${PORT}`);
   console.log(
     `[server] подтверждение почты: ${isEnabled ? 'включено' : 'выключено (нет SMTP_USER/SMTP_PASS)'}`
   );
+
+  // Результат проверки только пишем в лог: недоступный SMTP не повод
+  // не поднимать сайт, остальные разделы от почты не зависят.
+  if (isEnabled) verifyConnection();
 });
 
 module.exports = app;
