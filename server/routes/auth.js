@@ -3,7 +3,13 @@ const rateLimit = require('express-rate-limit');
 const { body } = require('express-validator');
 const { validate } = require('../middleware/validate');
 const { authMiddleware } = require('../middleware/authMiddleware');
-const { register, login, me } = require('../controllers/authController');
+const {
+  register,
+  login,
+  verifyEmail,
+  resendVerification,
+  me,
+} = require('../controllers/authController');
 
 const router = express.Router();
 
@@ -44,6 +50,37 @@ router.post(
   ],
   validate,
   login
+);
+
+router.post(
+  '/verify-email',
+  authLimiter,
+  [
+    body('token')
+      .isString()
+      .withMessage('Некорректная ссылка подтверждения')
+      .bail()
+      .trim()
+      .isLength({ min: 32, max: 128 })
+      .withMessage('Некорректная ссылка подтверждения'),
+  ],
+  validate,
+  verifyEmail
+);
+
+router.post(
+  '/resend-verification',
+  // Отдельный лимит: повторная отправка дороже обычного запроса.
+  rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 5,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { message: 'Слишком много запросов. Повторите позже.' },
+  }),
+  [body('email').trim().isEmail().withMessage('Введите корректный email').normalizeEmail()],
+  validate,
+  resendVerification
 );
 
 router.get('/me', authMiddleware, me);

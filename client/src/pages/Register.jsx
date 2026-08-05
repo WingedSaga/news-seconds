@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Lock, Mail, User, UserPlus } from 'lucide-react';
+import { Lock, Mail, MailCheck, User, UserPlus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import ErrorMessage from '../components/ErrorMessage';
 
@@ -15,6 +15,7 @@ export default function Register() {
   const [fieldErrors, setFieldErrors] = useState({});
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [pendingVerification, setPendingVerification] = useState(null);
 
   const update = (field) => (event) => {
     setForm((prev) => ({ ...prev, [field]: event.target.value }));
@@ -46,11 +47,17 @@ export default function Register() {
 
     setSubmitting(true);
     try {
-      await register({
+      const result = await register({
         username: form.username.trim(),
         email: form.email.trim(),
         password: form.password,
       });
+
+      if (result.requiresVerification) {
+        setPendingVerification(result);
+        return;
+      }
+
       navigate('/', { replace: true });
     } catch (err) {
       setError(err.message);
@@ -65,6 +72,26 @@ export default function Register() {
     { name: 'password', label: 'Пароль', type: 'password', icon: Lock, placeholder: 'Не менее 6 символов', autoComplete: 'new-password' },
     { name: 'confirm', label: 'Повторите пароль', type: 'password', icon: Lock, placeholder: 'Ещё раз', autoComplete: 'new-password' },
   ];
+
+  if (pendingVerification) {
+    return (
+      <div className="mx-auto max-w-md">
+        <div className="card space-y-4 p-6 text-center sm:p-8">
+          <MailCheck className="mx-auto h-12 w-12 text-brand" aria-hidden="true" />
+          <h1 className="text-2xl font-extrabold text-neutral-900">Подтвердите почту</h1>
+          <p className="text-sm text-neutral-600">{pendingVerification.message}</p>
+          <p className="text-sm font-semibold text-neutral-800">{pendingVerification.email}</p>
+          <p className="text-sm text-neutral-500">
+            Перейдите по ссылке из письма — она действительна 24 часа. Если письма нет,
+            проверьте папку «Спам».
+          </p>
+          <Link to="/verify-email" className="btn-outline w-full">
+            Письмо не пришло
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-md">

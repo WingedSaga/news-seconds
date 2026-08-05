@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const { supabase } = require('../db/supabase');
 
-const USER_FIELDS = 'id, username, email, role, avatar_url, is_banned, created_at';
+const USER_FIELDS = 'id, username, email, role, avatar_url, is_banned, email_verified, created_at';
 
 function readToken(req) {
   const header = req.headers.authorization || '';

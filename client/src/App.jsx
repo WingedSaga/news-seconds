@@ -9,6 +9,7 @@ import Weather from './pages/Weather';
 import Article from './pages/Article';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import VerifyEmail from './pages/VerifyEmail';
 import Submit from './pages/Submit';
 import MyArticles from './pages/MyArticles';
 import Bookmarks from './pages/Bookmarks';
@@ -30,6 +31,7 @@ export default function App() {
         <Route path="/article/:id" element={<Article />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
 
         <Route
           path="/submit"

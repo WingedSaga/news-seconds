@@ -19,10 +19,24 @@ services:
         value: 7d
       - key: SUPABASE_STORAGE_BUCKET
         value: article-images
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "465"
       # Задаются вручную в панели Render
       - key: SUPABASE_URL
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
       - key: CORS_ORIGIN
+        sync: false
+      - key: CLIENT_URL
+        sync: false
+      # Почта для подтверждения адреса. Без SMTP_USER и SMTP_PASS
+      # проверка почты просто выключена.
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: MAIL_FROM
         sync: false

@@ -52,11 +52,27 @@ export function AuthProvider({ children }) {
     return data.user;
   }, []);
 
+  // Когда включено подтверждение почты, регистрация не выдаёт токен:
+  // сначала нужно перейти по ссылке из письма.
   const register = useCallback(async (payload) => {
     const { data } = await api.post('/auth/register', payload);
+    if (data.token) {
+      localStorage.setItem(TOKEN_KEY, data.token);
+      setUser(data.user);
+    }
+    return data;
+  }, []);
+
+  const verifyEmail = useCallback(async (token) => {
+    const { data } = await api.post('/auth/verify-email', { token });
     localStorage.setItem(TOKEN_KEY, data.token);
     setUser(data.user);
     return data.user;
+  }, []);
+
+  const resendVerification = useCallback(async (email) => {
+    const { data } = await api.post('/auth/resend-verification', { email });
+    return data;
   }, []);
 
   const value = useMemo(
@@ -65,11 +81,13 @@ export function AuthProvider({ children }) {
       loading,
       login,
       register,
+      verifyEmail,
+      resendVerification,
       logout,
       isAuthenticated: Boolean(user),
       isAdmin: user?.role === 'admin',
     }),
-    [user, loading, login, register, logout]
+    [user, loading, login, register, verifyEmail, resendVerification, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

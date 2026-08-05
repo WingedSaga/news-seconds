@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LogIn, Lock, Mail } from 'lucide-react';
+import { LogIn, Lock, Mail, MailCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import ErrorMessage from '../components/ErrorMessage';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, resendVerification } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -15,6 +15,8 @@ export default function Login() {
   const [fieldErrors, setFieldErrors] = useState({});
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [resendState, setResendState] = useState('');
 
   const update = (field) => (event) => {
     setForm((prev) => ({ ...prev, [field]: event.target.value }));
@@ -35,13 +37,30 @@ export default function Login() {
     if (!validateForm()) return;
 
     setSubmitting(true);
+    setNeedsVerification(false);
     try {
       await login({ email: form.email.trim(), password: form.password });
       navigate(location.state?.from || '/', { replace: true });
     } catch (err) {
       setError(err.message);
+      // Сервер отдельно помечает неподтверждённую почту, чтобы можно было
+      // предложить повторную отправку письма прямо здесь.
+      if (err.response?.data?.code === 'EMAIL_NOT_VERIFIED') {
+        setNeedsVerification(true);
+      }
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleResend = async () => {
+    setResendState('sending');
+    try {
+      await resendVerification(form.email.trim());
+      setResendState('sent');
+    } catch (err) {
+      setError(err.message);
+      setResendState('');
     }
   };
 
@@ -54,6 +73,23 @@ export default function Login() {
         </div>
 
         <ErrorMessage message={error} />
+
+        {needsVerification &&
+          (resendState === 'sent' ? (
+            <p className="rounded-md border border-brand-accent bg-brand-accent/30 p-3 text-sm text-brand-dark">
+              Письмо отправлено повторно. Проверьте почту, в том числе папку «Спам».
+            </p>
+          ) : (
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={resendState === 'sending'}
+              className="btn-outline w-full"
+            >
+              <MailCheck className="h-4 w-4" aria-hidden="true" />
+              {resendState === 'sending' ? 'Отправляем...' : 'Отправить письмо повторно'}
+            </button>
+          ))}
 
         <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           <div className="space-y-1">

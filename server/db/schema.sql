@@ -12,8 +12,16 @@ create table if not exists public.users (
   role          text        not null default 'user' check (role in ('user', 'admin')),
   avatar_url    text,
   is_banned     boolean     not null default false,
-  created_at    timestamptz not null default now()
+  created_at    timestamptz not null default now(),
+  -- Подтверждение почты. Хранится хеш токена, а не сам токен:
+  -- утечка дампа базы не должна давать возможность подтвердить чужой адрес.
+  email_verified          boolean not null default false,
+  verification_token_hash text,
+  verification_expires_at timestamptz,
+  verification_sent_at    timestamptz
 );
+
+create index if not exists users_verification_token_idx on public.users (verification_token_hash);
 
 -- Статьи --------------------------------------------------------------------
 create table if not exists public.articles (
