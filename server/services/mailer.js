@@ -1,20 +1,32 @@
 const nodemailer = require('nodemailer');
 
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
+const RESEND_API_URL = 'https://api.resend.com/emails';
+
 const SMTP_HOST = process.env.SMTP_HOST || 'smtp.gmail.com';
 const SMTP_PORT = Number(process.env.SMTP_PORT || 465);
 const SMTP_USER = process.env.SMTP_USER;
 const SMTP_PASS = process.env.SMTP_PASS;
-const MAIL_FROM = process.env.MAIL_FROM || `НОВОСТИ СЕКУНДЫ <${SMTP_USER}>`;
 const CLIENT_URL = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/$/, '');
 
-// Без учётных данных SMTP подтверждение почты выключается целиком:
-// локальная разработка не должна упираться в почтовый сервер.
-const isEnabled = Boolean(SMTP_USER && SMTP_PASS);
+// Resend ходит по обычному HTTPS: хостинги часто фильтруют исходящий SMTP,
+// и тогда письма молча не уходят. Поэтому он в приоритете, SMTP — запасной.
+const provider = RESEND_API_KEY ? 'resend' : SMTP_USER && SMTP_PASS ? 'smtp' : 'none';
+const isEnabled = provider !== 'none';
+
+// Без своего домена Resend разрешает отправку только с этого адреса.
+const DEFAULT_FROM =
+  provider === 'resend'
+    ? 'НОВОСТИ СЕКУНДЫ <onboarding@resend.dev>'
+    : `НОВОСТИ СЕКУНДЫ <${SMTP_USER}>`;
+const MAIL_FROM = process.env.MAIL_FROM || DEFAULT_FROM;
+
+const REQUEST_TIMEOUT_MS = 15000;
 
 let transporter = null;
 
 function getTransporter() {
-  if (!isEnabled) return null;
+  if (provider !== 'smtp') return null;
   if (!transporter) {
     transporter = nodemailer.createTransport({
       host: SMTP_HOST,
@@ -85,12 +97,54 @@ function verificationTemplate(username, url) {
   return { text, html };
 }
 
-// Проверка учётных данных SMTP при старте: ошибка авторизации должна быть
-// видна сразу в логах, а не всплывать при первой регистрации.
-async function verifyConnection() {
-  const mailer = getTransporter();
-  if (!mailer) return { ok: false, reason: 'disabled' };
+// Отправка через HTTP API Resend.
+async function sendViaResend({ to, subject, text, html }) {
+  const response = await fetch(RESEND_API_URL, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${RESEND_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ from: MAIL_FROM, to: [to], subject, text, html }),
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+  });
 
+  const payload = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    // Resend возвращает причину в поле message — она информативнее кода.
+    throw new Error(payload.message || `HTTP ${response.status}`);
+  }
+
+  return payload.id || 'ok';
+}
+
+// Проверка учётных данных при старте: ошибка авторизации должна быть
+// видна сразу в логах, а не всплывать как молча непришедшие письма.
+async function verifyConnection() {
+  if (provider === 'none') return { ok: false, reason: 'disabled' };
+
+  if (provider === 'resend') {
+    try {
+      const response = await fetch('https://api.resend.com/domains', {
+        headers: { Authorization: `Bearer ${RESEND_API_KEY}` },
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      });
+
+      if (response.status === 401 || response.status === 403) {
+        console.error('[mailer] Resend отклонил ключ: проверьте RESEND_API_KEY');
+        return { ok: false, reason: 'unauthorized' };
+      }
+
+      console.log(`[mailer] Resend принял ключ, отправитель: ${MAIL_FROM}`);
+      return { ok: true };
+    } catch (err) {
+      console.error('[mailer] не удалось связаться с Resend:', err.message);
+      return { ok: false, reason: err.message };
+    }
+  }
+
+  const mailer = getTransporter();
   try {
     await mailer.verify();
     console.log(`[mailer] SMTP ${SMTP_HOST}:${SMTP_PORT} принял учётные данные ${SMTP_USER}`);
@@ -103,21 +157,20 @@ async function verifyConnection() {
 
 // Отправка не должна ронять регистрацию: об ошибке сообщаем через результат.
 async function sendVerificationEmail({ to, username, token }) {
-  const mailer = getTransporter();
-  if (!mailer) return { sent: false, reason: 'disabled' };
+  if (provider === 'none') return { sent: false, reason: 'disabled' };
 
   const url = buildVerificationUrl(token);
   const { text, html } = verificationTemplate(username, url);
+  const subject = 'Подтверждение почты — НОВОСТИ СЕКУНДЫ';
 
   try {
-    const info = await mailer.sendMail({
-      from: MAIL_FROM,
-      to,
-      subject: 'Подтверждение почты — НОВОСТИ СЕКУНДЫ',
-      text,
-      html,
-    });
-    console.log(`[mailer] письмо отправлено на ${to}, ответ сервера: ${info.response}`);
+    if (provider === 'resend') {
+      const id = await sendViaResend({ to, subject, text, html });
+      console.log(`[mailer] Resend принял письмо для ${to}, id: ${id}`);
+    } else {
+      const info = await getTransporter().sendMail({ from: MAIL_FROM, to, subject, text, html });
+      console.log(`[mailer] письмо отправлено на ${to}, ответ сервера: ${info.response}`);
+    }
     return { sent: true };
   } catch (err) {
     console.error(`[mailer] не удалось отправить письмо на ${to}:`, err.message);
@@ -125,4 +178,10 @@ async function sendVerificationEmail({ to, username, token }) {
   }
 }
 
-module.exports = { isEnabled, verifyConnection, sendVerificationEmail, buildVerificationUrl };
+module.exports = {
+  isEnabled,
+  provider,
+  verifyConnection,
+  sendVerificationEmail,
+  buildVerificationUrl,
+};

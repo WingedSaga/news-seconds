@@ -32,8 +32,11 @@ services:
         sync: false
       - key: CLIENT_URL
         sync: false
-      # Почта для подтверждения адреса. Без SMTP_USER и SMTP_PASS
-      # проверка почты просто выключена.
+      # Почта для подтверждения адреса. Приоритет у Resend: он работает
+      # поверх HTTPS, тогда как исходящий SMTP часто отфильтрован.
+      # Если не задано ничего, проверка почты просто выключена.
+      - key: RESEND_API_KEY
+        sync: false
       - key: SMTP_USER
         sync: false
       - key: SMTP_PASS
