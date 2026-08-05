@@ -207,9 +207,16 @@ update public.users set role = 'admin' where email = 'ваш@email';
 
 ### Сервер на Render
 
-В репозитории есть [`render.yaml`](render.yaml) — создайте **Blueprint** и укажите
-на этот файл, либо заведите Web Service вручную с **Root Directory** `server`,
-build `npm ci`, start `npm start`. Переменные окружения те же, что и для Railway.
+Разворачивание в один клик по готовому [`render.yaml`](render.yaml):
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/WingedSaga/news-seconds)
+
+Render сам создаст сервис с нужными командами сборки и запуска и сгенерирует
+`JWT_SECRET`. Останется вписать три значения: `SUPABASE_URL`,
+`SUPABASE_SERVICE_ROLE_KEY` и `CORS_ORIGIN`.
+
+Вручную: Web Service с **Root Directory** `server`, build `npm ci`,
+start `npm start`. Переменные окружения те же, что и для Railway.
 
 ### Клиент на GitHub Pages
 

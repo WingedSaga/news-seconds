@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../api/axios';
 import useArticleFeed from '../hooks/useArticleFeed';
-import CategoryTabs from '../components/CategoryTabs';
 import FeedSection from '../components/FeedSection';
 import NewsCard from '../components/NewsCard';
 import SkeletonCard from '../components/SkeletonCard';
@@ -33,8 +32,6 @@ export default function Home() {
 
   return (
     <div className="space-y-8">
-      <CategoryTabs />
-
       <section aria-labelledby="featured-heading" className="space-y-4">
         <h2 id="featured-heading" className="text-xl font-extrabold text-neutral-900">
           Главное сейчас

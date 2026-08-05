@@ -1,6 +1,5 @@
 import { CloudSun } from 'lucide-react';
 import useArticleFeed from '../hooks/useArticleFeed';
-import CategoryTabs from '../components/CategoryTabs';
 import FeedSection from '../components/FeedSection';
 
 export default function Weather() {
@@ -8,8 +7,6 @@ export default function Weather() {
 
   return (
     <div className="space-y-8">
-      <CategoryTabs />
-
       <section className="space-y-4">
         <div className="card flex items-start gap-4 p-5">
           <span className="rounded-md bg-brand-accent p-3 text-brand-dark">
