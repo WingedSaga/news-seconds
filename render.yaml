@@ -8,6 +8,9 @@ services:
     startCommand: npm start
     healthCheckPath: /api/health
     envVars:
+      # @supabase/supabase-js требует Node 22+
+      - key: NODE_VERSION
+        value: "22"
       - key: NODE_ENV
         value: production
       - key: JWT_SECRET
