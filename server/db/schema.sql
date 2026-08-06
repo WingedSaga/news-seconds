@@ -62,6 +62,22 @@ create table if not exists public.bookmarks (
 
 create index if not exists bookmarks_user_idx on public.bookmarks (user_id, created_at desc);
 
+-- Настройки сайта -----------------------------------------------------------
+-- Переключаются из админ-панели, поэтому живут в базе, а не в окружении.
+create table if not exists public.settings (
+  key        text primary key,
+  value      jsonb       not null,
+  updated_at timestamptz not null default now()
+);
+
+insert into public.settings (key, value) values
+  ('email_verification',   'false'::jsonb),
+  ('registration_open',    'true'::jsonb),
+  ('comments_enabled',     'true'::jsonb),
+  ('auto_approve_articles','false'::jsonb),
+  ('site_tagline',         '"Новости, анекдоты и погода — каждую секунду"'::jsonb)
+on conflict (key) do nothing;
+
 -- Атомарный инкремент счётчика просмотров -----------------------------------
 create or replace function public.increment_article_views(article_id uuid)
 returns void
@@ -76,6 +92,7 @@ alter table public.users     enable row level security;
 alter table public.articles  enable row level security;
 alter table public.comments  enable row level security;
 alter table public.bookmarks enable row level security;
+alter table public.settings  enable row level security;
 
 -- Права для роли service_role, под которой работает сервер.
 -- Выдаются явно: полагаться на привилегии по умолчанию нельзя, иначе

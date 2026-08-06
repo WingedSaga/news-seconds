@@ -1,4 +1,5 @@
 const { supabase } = require('../db/supabase');
+const settings = require('../services/settings');
 
 const AUTHOR_SELECT = 'author:users (id, username, avatar_url)';
 const LIST_SELECT = `id, title, content, category, image_url, author_id, status, views, created_at, ${AUTHOR_SELECT}`;
@@ -154,6 +155,8 @@ async function getArticle(req, res, next) {
 async function createArticle(req, res, next) {
   try {
     const { title, content, category, image_url } = req.body;
+    // При включённом автоодобрении материал публикуется без модерации.
+    const status = (await settings.getSetting('auto_approve_articles')) ? 'approved' : 'pending';
 
     const { data, error } = await supabase
       .from('articles')
@@ -163,7 +166,7 @@ async function createArticle(req, res, next) {
         category,
         image_url: image_url ? String(image_url).trim() : null,
         author_id: req.user.id,
-        status: 'pending',
+        status,
       })
       .select(LIST_SELECT)
       .single();

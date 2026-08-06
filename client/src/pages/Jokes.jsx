@@ -8,7 +8,7 @@ export default function Jokes() {
     <div className="space-y-8">
       <section className="space-y-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-neutral-900">Анекдоты</h1>
+          <h1 className="section-title">Анекдоты</h1>
           <p className="text-sm text-neutral-500">Свежая подборка шуток от читателей нашего издания.</p>
         </div>
 

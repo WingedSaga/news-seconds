@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const { supabase } = require('../db/supabase');
 const { USER_FIELDS } = require('../middleware/authMiddleware');
 const mailer = require('../services/mailer');
+const settings = require('../services/settings');
 
 const SALT_ROUNDS = 10;
 const TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
@@ -42,8 +43,19 @@ function hashToken(token) {
   return crypto.createHash('sha256').update(String(token)).digest('hex');
 }
 
+// Подтверждение требуется, только если оно включено в настройках
+// и почту действительно есть чем отправлять.
+async function verificationRequired() {
+  return mailer.isEnabled && (await settings.getSetting('email_verification'));
+}
+
 async function register(req, res, next) {
   try {
+    if (!(await settings.getSetting('registration_open'))) {
+      return res.status(403).json({ message: 'Регистрация на сайте временно закрыта' });
+    }
+
+    const requireVerification = await verificationRequired();
     const username = String(req.body.username).trim();
     const email = String(req.body.email).trim().toLowerCase();
     const { password } = req.body;
@@ -67,7 +79,7 @@ async function register(req, res, next) {
     }
 
     const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
-    const verification = mailer.isEnabled ? createVerificationToken() : null;
+    const verification = requireVerification ? createVerificationToken() : null;
 
     const { data: created, error: insertError } = await supabase
       .from('users')
@@ -76,8 +88,8 @@ async function register(req, res, next) {
         email,
         password_hash,
         role: 'user',
-        // Без настроенной почты подтверждать нечем — аккаунт сразу активен.
-        email_verified: !mailer.isEnabled,
+        // Когда подтверждение выключено, аккаунт активен сразу.
+        email_verified: !requireVerification,
         verification_token_hash: verification?.hash || null,
         verification_expires_at: verification?.expiresAt || null,
         verification_sent_at: verification ? new Date().toISOString() : null,
@@ -135,7 +147,7 @@ async function login(req, res, next) {
       return res.status(403).json({ message: 'Ваш аккаунт заблокирован' });
     }
 
-    if (mailer.isEnabled && !user.email_verified) {
+    if ((await verificationRequired()) && !user.email_verified) {
       return res.status(403).json({
         code: 'EMAIL_NOT_VERIFIED',
         message: 'Подтвердите адрес почты — мы отправили вам письмо со ссылкой',
@@ -209,7 +221,7 @@ async function resendVerification(req, res, next) {
       message: 'Если аккаунт с таким адресом существует и не подтверждён, письмо отправлено',
     };
 
-    if (!mailer.isEnabled) {
+    if (!(await verificationRequired())) {
       return res.json(genericResponse);
     }
 

@@ -4,6 +4,9 @@ const { validate } = require('../middleware/validate');
 const { authMiddleware } = require('../middleware/authMiddleware');
 const { adminMiddleware } = require('../middleware/adminMiddleware');
 const {
+  getSettings,
+  updateSettings,
+  promoteByEmail,
   stats,
   listArticles,
   updateArticleStatus,
@@ -20,6 +23,32 @@ const router = express.Router();
 router.use(authMiddleware, adminMiddleware);
 
 router.get('/stats', stats);
+
+router.get('/settings', getSettings);
+
+router.patch(
+  '/settings',
+  [
+    body('email_verification').optional().isBoolean().withMessage('Некорректное значение').toBoolean(),
+    body('registration_open').optional().isBoolean().withMessage('Некорректное значение').toBoolean(),
+    body('comments_enabled').optional().isBoolean().withMessage('Некорректное значение').toBoolean(),
+    body('auto_approve_articles').optional().isBoolean().withMessage('Некорректное значение').toBoolean(),
+    body('site_tagline')
+      .optional()
+      .trim()
+      .isLength({ max: 200 })
+      .withMessage('Подзаголовок не длиннее 200 символов'),
+  ],
+  validate,
+  updateSettings
+);
+
+router.post(
+  '/users/promote',
+  [body('email').trim().isEmail().withMessage('Введите корректный email').normalizeEmail()],
+  validate,
+  promoteByEmail
+);
 
 router.get('/articles', listArticles);
 

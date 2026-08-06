@@ -14,6 +14,9 @@ export default {
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+        // Заголовки набираются шрифтом с засечками — это и даёт газетный вид.
+        // Только системные шрифты: внешние подключать нечем и незачем.
+        serif: ['Georgia', 'Times New Roman', 'PT Serif', 'serif'],
       },
       keyframes: {
         ticker: {

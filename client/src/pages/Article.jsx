@@ -141,7 +141,7 @@ export default function Article() {
             )}
           </div>
 
-          <h1 className="text-3xl font-extrabold leading-tight text-neutral-900">{article.title}</h1>
+          <h1 className="font-serif text-4xl font-black leading-tight text-neutral-900">{article.title}</h1>
 
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-neutral-200 pb-4 text-sm text-neutral-500">
             <span className="flex items-center gap-2">

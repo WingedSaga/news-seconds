@@ -13,7 +13,7 @@ export default function Weather() {
             <CloudSun className="h-6 w-6" aria-hidden="true" />
           </span>
           <div>
-            <h1 className="text-2xl font-extrabold text-neutral-900">Погода</h1>
+            <h1 className="font-serif text-2xl font-black uppercase tracking-widest text-neutral-900">Погода</h1>
             <p className="text-sm text-neutral-500">
               Прогнозы, наблюдения и погодные сводки от редакции и читателей.
             </p>

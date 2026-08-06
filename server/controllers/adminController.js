@@ -1,6 +1,73 @@
 const { supabase } = require('../db/supabase');
 const { LIST_SELECT } = require('./articlesController');
 const { USER_FIELDS } = require('../middleware/authMiddleware');
+const settingsService = require('../services/settings');
+const mailer = require('../services/mailer');
+
+// GET /api/admin/settings
+async function getSettings(_req, res, next) {
+  try {
+    const values = await settingsService.getSettings({ force: true });
+    res.json({
+      settings: values,
+      // Переключатель подтверждения почты бессмыслен без настроенной отправки,
+      // поэтому панель показывает, доступна ли она вообще.
+      mail: { available: mailer.isEnabled, provider: mailer.provider },
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// PATCH /api/admin/settings
+async function updateSettings(req, res, next) {
+  try {
+    const patch = {};
+    for (const key of settingsService.EDITABLE) {
+      if (req.body[key] !== undefined) patch[key] = req.body[key];
+    }
+
+    if (Object.keys(patch).length === 0) {
+      return res.status(400).json({ message: 'Не переданы настройки для изменения' });
+    }
+
+    if (patch.email_verification && !mailer.isEnabled) {
+      return res.status(400).json({
+        message: 'Нельзя включить подтверждение почты: не настроен сервис отправки писем',
+      });
+    }
+
+    const values = await settingsService.updateSettings(patch);
+    res.json({ settings: values });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// POST /api/admin/users/promote — назначение администратора по адресу почты.
+async function promoteByEmail(req, res, next) {
+  try {
+    const email = String(req.body.email).trim().toLowerCase();
+
+    const { data, error } = await supabase
+      .from('users')
+      .update({ role: 'admin' })
+      .eq('email', email)
+      .select(USER_FIELDS)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) {
+      return res.status(404).json({
+        message: 'Пользователь с таким адресом не найден — сначала он должен зарегистрироваться',
+      });
+    }
+
+    res.json({ item: data });
+  } catch (err) {
+    next(err);
+  }
+}
 
 // GET /api/admin/stats
 async function stats(_req, res, next) {
@@ -206,6 +273,9 @@ async function updateUserBan(req, res, next) {
 }
 
 module.exports = {
+  getSettings,
+  updateSettings,
+  promoteByEmail,
   stats,
   listArticles,
   updateArticleStatus,

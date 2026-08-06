@@ -1,4 +1,5 @@
 const { supabase } = require('../db/supabase');
+const settings = require('../services/settings');
 
 const COMMENT_SELECT = 'id, article_id, user_id, text, created_at, author:users (id, username, avatar_url)';
 
@@ -21,6 +22,10 @@ async function listComments(req, res, next) {
 // POST /api/comments
 async function createComment(req, res, next) {
   try {
+    if (!(await settings.getSetting('comments_enabled'))) {
+      return res.status(403).json({ message: 'Комментарии на сайте отключены' });
+    }
+
     const { article_id, text } = req.body;
 
     const { data: article, error: articleError } = await supabase

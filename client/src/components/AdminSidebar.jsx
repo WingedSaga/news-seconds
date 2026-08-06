@@ -1,11 +1,12 @@
 import { NavLink } from 'react-router-dom';
-import { ClipboardList, FileStack, Home, LayoutDashboard, Users } from 'lucide-react';
+import { ClipboardList, FileStack, Home, LayoutDashboard, SlidersHorizontal, Users } from 'lucide-react';
 
 const LINKS = [
   { to: '/admin', label: 'Обзор', icon: LayoutDashboard, end: true },
   { to: '/admin/pending', label: 'Модерация', icon: ClipboardList },
   { to: '/admin/articles', label: 'Все статьи', icon: FileStack },
   { to: '/admin/users', label: 'Пользователи', icon: Users },
+  { to: '/admin/settings', label: 'Управление', icon: SlidersHorizontal },
 ];
 
 export default function AdminSidebar() {

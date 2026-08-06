@@ -37,7 +37,11 @@ export default function NewsCard({ article, featured = false }) {
       <div className={`flex flex-1 flex-col gap-3 p-4 ${featured ? 'lg:p-6' : ''}`}>
         <span className="pill w-fit">{CATEGORY_LABELS[category] || category}</span>
 
-        <h3 className={`font-bold leading-snug text-neutral-900 ${featured ? 'text-2xl lg:text-3xl' : 'text-lg'}`}>
+        <h3
+          className={`font-serif font-bold leading-tight text-neutral-900 ${
+            featured ? 'text-3xl lg:text-4xl' : 'text-xl'
+          }`}
+        >
           <Link to={`/article/${id}`} className="hover:text-brand">
             {title}
           </Link>
