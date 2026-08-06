@@ -41,6 +41,15 @@ router.post(
       .trim()
       .isURL()
       .withMessage('Ссылка на изображение некорректна'),
+    body('media_url')
+      .optional({ values: 'falsy' })
+      .trim()
+      .isURL()
+      .withMessage('Ссылка на вложение некорректна'),
+    body('media_type')
+      .optional({ values: 'falsy' })
+      .isIn(['audio', 'video'])
+      .withMessage('Тип вложения должен быть audio или video'),
   ],
   validate,
   createArticle

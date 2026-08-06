@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle2, ImagePlus, Send, X } from 'lucide-react';
+import { CheckCircle2, FileAudio, FileVideo, ImagePlus, Paperclip, Send, X } from 'lucide-react';
 import api from '../api/axios';
 import ErrorMessage from '../components/ErrorMessage';
 
@@ -11,6 +11,8 @@ const CATEGORIES = [
 ];
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const MAX_MEDIA_BYTES = 50 * 1024 * 1024;
+const MEDIA_TYPES = ['audio/mpeg', 'audio/mp3', 'video/mp4'];
 
 export default function Submit() {
   const navigate = useNavigate();
@@ -18,6 +20,8 @@ export default function Submit() {
   const [form, setForm] = useState({ title: '', content: '', category: 'news' });
   const [imageUrl, setImageUrl] = useState('');
   const [imagePreview, setImagePreview] = useState('');
+  const [media, setMedia] = useState(null);
+  const [uploadingMedia, setUploadingMedia] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
   const [error, setError] = useState('');
   const [uploading, setUploading] = useState(false);
@@ -75,6 +79,40 @@ export default function Submit() {
     }
   };
 
+  const handleMediaChange = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setError('');
+
+    // Браузеры иногда отдают пустой тип для mp3, поэтому проверяем и расширение.
+    const looksAllowed = MEDIA_TYPES.includes(file.type) || /\.(mp3|mp4)$/i.test(file.name);
+    if (!looksAllowed) {
+      setError('Прикрепить можно только MP3 или MP4');
+      return;
+    }
+    if (file.size > MAX_MEDIA_BYTES) {
+      setError('Размер файла не должен превышать 50 МБ');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('media', file);
+
+    setUploadingMedia(true);
+    try {
+      const { data } = await api.post('/upload/media', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setMedia({ url: data.url, type: data.media_type, name: file.name });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setUploadingMedia(false);
+      event.target.value = '';
+    }
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError('');
@@ -87,6 +125,8 @@ export default function Submit() {
         content: form.content.trim(),
         category: form.category,
         image_url: imageUrl || undefined,
+        media_url: media?.url || undefined,
+        media_type: media?.type || undefined,
       });
       setSuccess(true);
       setTimeout(() => navigate('/my-articles'), 1500);
@@ -209,7 +249,53 @@ export default function Submit() {
           <p className="text-xs text-neutral-400">JPG, PNG, WEBP или GIF, до 5 МБ. Поле необязательное.</p>
         </div>
 
-        <button type="submit" className="btn-primary w-full sm:w-auto" disabled={submitting || uploading}>
+        <div className="space-y-2">
+          <span className="text-sm font-semibold text-neutral-700">Аудио или видео</span>
+
+          {media ? (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 rounded-md border border-neutral-200 bg-neutral-50 p-3">
+                {media.type === 'video' ? (
+                  <FileVideo className="h-5 w-5 shrink-0 text-brand" aria-hidden="true" />
+                ) : (
+                  <FileAudio className="h-5 w-5 shrink-0 text-brand" aria-hidden="true" />
+                )}
+                <span className="min-w-0 flex-1 truncate text-sm text-neutral-700">{media.name}</span>
+                <button
+                  type="button"
+                  onClick={() => setMedia(null)}
+                  className="rounded p-1 text-neutral-400 hover:bg-red-50 hover:text-red-600"
+                  aria-label="Убрать вложение"
+                >
+                  <X className="h-4 w-4" aria-hidden="true" />
+                </button>
+              </div>
+
+              {media.type === 'video' ? (
+                <video src={media.url} controls className="w-full rounded-md border border-neutral-200" />
+              ) : (
+                <audio src={media.url} controls className="w-full" />
+              )}
+            </div>
+          ) : (
+            <label className="btn-outline w-fit cursor-pointer">
+              <Paperclip className="h-4 w-4" aria-hidden="true" />
+              {uploadingMedia ? 'Загружаем...' : 'Прикрепить файл'}
+              <input
+                type="file"
+                accept="audio/mpeg,video/mp4,.mp3,.mp4"
+                onChange={handleMediaChange}
+                disabled={uploadingMedia}
+                className="hidden"
+              />
+            </label>
+          )}
+          <p className="text-xs text-neutral-400">
+            MP3 или MP4, до 50 МБ. Загрузка большого файла занимает время — дождитесь окончания.
+          </p>
+        </div>
+
+        <button type="submit" className="btn-primary w-full sm:w-auto" disabled={submitting || uploading || uploadingMedia}>
           <Send className="h-4 w-4" aria-hidden="true" />
           {submitting ? 'Отправляем...' : 'Отправить на модерацию'}
         </button>

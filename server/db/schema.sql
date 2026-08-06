@@ -30,6 +30,9 @@ create table if not exists public.articles (
   content    text        not null,
   category   text        not null check (category in ('news', 'joke', 'weather')),
   image_url  text,
+  -- Вложение: mp3 или mp4, тип нужен, чтобы выбрать проигрыватель.
+  media_url  text,
+  media_type text        check (media_type is null or media_type in ('audio', 'video')),
   author_id  uuid        references public.users (id) on delete set null,
   status     text        not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
   views      integer     not null default 0,
@@ -158,6 +161,11 @@ alter default privileges in schema public grant execute on functions to service_
 -- Бакет для картинок статей (публичное чтение).
 insert into storage.buckets (id, name, public)
 values ('article-images', 'article-images', true)
+on conflict (id) do nothing;
+
+-- Бакет для аудио и видео: файлы тяжелее картинок, лимит 50 МБ.
+insert into storage.buckets (id, name, public, file_size_limit)
+values ('article-media', 'article-media', true, 52428800)
 on conflict (id) do nothing;
 
 -- Как назначить администратора (подставьте свой email):

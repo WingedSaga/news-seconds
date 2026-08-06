@@ -158,6 +158,24 @@ export default function Article() {
             </span>
           </div>
 
+          {article.media_url && (
+            <figure className="space-y-2">
+              {article.media_type === 'video' ? (
+                <video
+                  src={article.media_url}
+                  controls
+                  preload="metadata"
+                  className="w-full rounded-md border border-neutral-200 bg-black"
+                />
+              ) : (
+                <audio src={article.media_url} controls preload="metadata" className="w-full" />
+              )}
+              <figcaption className="text-xs text-neutral-400">
+                {article.media_type === 'video' ? 'Видео к материалу' : 'Аудиозапись к материалу'}
+              </figcaption>
+            </figure>
+          )}
+
           <div className="whitespace-pre-wrap text-base leading-relaxed text-neutral-800">{article.content}</div>
 
           {isAuthenticated && (

@@ -2,7 +2,7 @@ const { supabase } = require('../db/supabase');
 const settings = require('../services/settings');
 
 const AUTHOR_SELECT = 'author:users (id, username, avatar_url)';
-const LIST_SELECT = `id, title, content, category, image_url, author_id, status, views, created_at, ${AUTHOR_SELECT}`;
+const LIST_SELECT = `id, title, content, category, image_url, media_url, media_type, author_id, status, views, created_at, ${AUTHOR_SELECT}`;
 
 // В значениях фильтров PostgREST спецсимволы ломают выражение `or`, убираем их.
 function sanitizeSearch(value) {
@@ -154,7 +154,7 @@ async function getArticle(req, res, next) {
 // POST /api/articles — отправка новости на модерацию.
 async function createArticle(req, res, next) {
   try {
-    const { title, content, category, image_url } = req.body;
+    const { title, content, category, image_url, media_url, media_type } = req.body;
     // При включённом автоодобрении материал публикуется без модерации.
     const status = (await settings.getSetting('auto_approve_articles')) ? 'approved' : 'pending';
 
@@ -165,6 +165,8 @@ async function createArticle(req, res, next) {
         content: String(content).trim(),
         category,
         image_url: image_url ? String(image_url).trim() : null,
+        media_url: media_url ? String(media_url).trim() : null,
+        media_type: media_url ? media_type : null,
         author_id: req.user.id,
         status,
       })

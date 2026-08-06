@@ -1,12 +1,12 @@
 import { Link } from 'react-router-dom';
-import { Clock, Eye, ImageOff } from 'lucide-react';
+import { Clock, Eye, ImageOff, Music, Video } from 'lucide-react';
 import Avatar from './Avatar';
 import { CATEGORY_LABELS, excerpt, formatRelativeDate } from '../utils/format';
 
 export default function NewsCard({ article, featured = false }) {
   if (!article) return null;
 
-  const { id, title, content, category, image_url, views, created_at, author } = article;
+  const { id, title, content, category, image_url, media_url, media_type, views, created_at, author } = article;
 
   return (
     <article
@@ -35,7 +35,19 @@ export default function NewsCard({ article, featured = false }) {
       </Link>
 
       <div className={`flex flex-1 flex-col gap-3 p-4 ${featured ? 'lg:p-6' : ''}`}>
-        <span className="pill w-fit">{CATEGORY_LABELS[category] || category}</span>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="pill w-fit">{CATEGORY_LABELS[category] || category}</span>
+          {media_url && (
+            <span className="pill-accent inline-flex items-center gap-1">
+              {media_type === 'video' ? (
+                <Video className="h-3 w-3" aria-hidden="true" />
+              ) : (
+                <Music className="h-3 w-3" aria-hidden="true" />
+              )}
+              {media_type === 'video' ? 'Видео' : 'Аудио'}
+            </span>
+          )}
+        </div>
 
         <h3
           className={`font-serif font-bold leading-tight text-neutral-900 ${
