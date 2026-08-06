@@ -1,6 +1,16 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Bookmark, FilePlus2, LayoutDashboard, LifeBuoy, LogOut, Menu, User, X } from 'lucide-react';
+import {
+  Bookmark,
+  FilePlus2,
+  LayoutDashboard,
+  LifeBuoy,
+  LogOut,
+  Menu,
+  Newspaper,
+  User,
+  X,
+} from 'lucide-react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import Avatar from './Avatar';
@@ -58,7 +68,20 @@ export default function Navbar() {
     <header className="border-b-[3px] border-double border-ink bg-white">
       <div className="mx-auto max-w-7xl px-4">
         <div className="flex items-center justify-between gap-4 border-b border-neutral-200 py-2 text-[11px] uppercase tracking-widest text-neutral-500">
-          <span className="hidden sm:inline">{todayLine()}</span>
+          <div className="flex min-w-0 items-center gap-3">
+            {/* Знак издания слева: короткий путь на главную с любой страницы. */}
+            <Link
+              to="/"
+              className="flex shrink-0 items-center gap-1.5 text-brand transition-colors hover:text-brand-hover"
+              aria-label="На главную"
+              title="На главную"
+            >
+              <Newspaper className="h-5 w-5" aria-hidden="true" />
+              <span className="text-[11px] font-bold tracking-[0.14em]">НС</span>
+            </Link>
+
+            <span className="hidden truncate sm:inline">{todayLine()}</span>
+          </div>
 
           <div className="flex items-center gap-2">
             {isAuthenticated ? (
