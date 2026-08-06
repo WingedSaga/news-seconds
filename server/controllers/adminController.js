@@ -6,6 +6,21 @@ const mailer = require('../services/mailer');
 const audit = require('../services/audit');
 const { loadMessages, TICKET_SELECT } = require('./supportController');
 
+// Таблицы из миграций может не быть, если база отстала от кода.
+// Такой раздел должен объяснять, что делать, а не падать с ошибкой 500.
+function isMissingTable(error) {
+  if (!error) return false;
+  return (
+    error.code === '42P01' ||
+    error.code === 'PGRST205' ||
+    /does not exist|schema cache/i.test(error.message || '')
+  );
+}
+
+function setupNotice(table, migration) {
+  return `Раздел ещё не настроен: в базе нет таблицы ${table}. Выполните server/db/migrations/${migration}`;
+}
+
 // GET /api/admin/settings
 async function getSettings(_req, res, next) {
   try {
@@ -144,12 +159,13 @@ async function stats(_req, res, next) {
       articlesRes,
       commentsRes,
       bookmarksRes,
-      openTicketsRes,
       allArticlesRes,
       topRes,
       pendingListRes,
       recentCommentsRes,
     ];
+    // Обращения поддержки считаем необязательными: без их таблицы
+    // остальная сводка обязана строиться.
     const failed = responses.find((r) => r.error);
     if (failed) throw failed.error;
 
@@ -190,7 +206,7 @@ async function stats(_req, res, next) {
       rejectedArticles: byStatus.rejected,
       totalComments: commentsRes.count || 0,
       totalBookmarks: bookmarksRes.count || 0,
-      openTickets: openTicketsRes.count || 0,
+      openTickets: openTicketsRes.error ? null : openTicketsRes.count || 0,
       totalViews,
       byCategory,
       timeline,
@@ -518,6 +534,9 @@ async function listLogs(_req, res, next) {
   try {
     res.json({ items: await audit.listActions({ limit: 150 }) });
   } catch (err) {
+    if (isMissingTable(err)) {
+      return res.json({ items: [], notice: setupNotice('admin_actions', '003_admin_tools.sql') });
+    }
     next(err);
   }
 }
@@ -608,6 +627,10 @@ async function listTickets(req, res, next) {
     }
 
     const { data, error } = await query;
+
+    if (isMissingTable(error)) {
+      return res.json({ items: [], notice: setupNotice('support_tickets', '004_support.sql') });
+    }
     if (error) throw error;
 
     const items = await Promise.all(

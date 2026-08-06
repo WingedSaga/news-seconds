@@ -4,6 +4,7 @@ import api from '../../api/axios';
 import Loader from '../../components/Loader';
 import ErrorMessage from '../../components/ErrorMessage';
 import EmptyState from '../../components/EmptyState';
+import SetupNotice from '../../components/SetupNotice';
 import { formatDateTime, formatRelativeDate } from '../../utils/format';
 
 const ACTION_LABELS = {
@@ -44,13 +45,17 @@ export default function AdminLogs() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
 
   const load = useCallback(() => {
     setLoading(true);
     setError('');
     return api
       .get('/admin/logs')
-      .then(({ data }) => setItems(data.items))
+      .then(({ data }) => {
+        setItems(data.items);
+        setNotice(data.notice || '');
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
@@ -67,6 +72,8 @@ export default function AdminLogs() {
           Кто и что менял в панели. Последние 150 записей.
         </p>
       </div>
+
+      <SetupNotice message={notice} />
 
       <ErrorMessage message={error} onRetry={load} />
 

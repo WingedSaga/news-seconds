@@ -4,6 +4,7 @@ import api from '../../api/axios';
 import Loader from '../../components/Loader';
 import ErrorMessage from '../../components/ErrorMessage';
 import EmptyState from '../../components/EmptyState';
+import SetupNotice from '../../components/SetupNotice';
 import { TICKET_STATUS, TicketThread } from '../Support';
 import { formatDateTime, formatRelativeDate } from '../../utils/format';
 
@@ -22,6 +23,7 @@ export default function AdminSupport() {
   const [replyText, setReplyText] = useState({});
   const [busyId, setBusyId] = useState(null);
   const [reloadToken, setReloadToken] = useState(0);
+  const [notice, setNotice] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -31,7 +33,9 @@ export default function AdminSupport() {
     api
       .get('/admin/support', { params: status ? { status } : {} })
       .then(({ data }) => {
-        if (!cancelled) setItems(data.items);
+        if (cancelled) return;
+        setItems(data.items);
+        setNotice(data.notice || '');
       })
       .catch((err) => {
         if (!cancelled) setError(err.message);
@@ -104,6 +108,8 @@ export default function AdminSupport() {
           </button>
         ))}
       </div>
+
+      <SetupNotice message={notice} />
 
       <ErrorMessage message={error} onRetry={reload} />
 

@@ -77,7 +77,8 @@ export default function AdminDashboard() {
         <StatTile label="Закладок" value={stats.totalBookmarks} icon={Bookmark} />
         <StatTile
           label="Открытых обращений"
-          value={stats.openTickets ?? 0}
+          value={stats.openTickets === null ? '—' : stats.openTickets}
+          hint={stats.openTickets === null ? 'Поддержка не настроена' : undefined}
           icon={LifeBuoy}
           tone={stats.openTickets > 0 ? 'warning' : 'neutral'}
         />
