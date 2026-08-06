@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Bookmark, FilePlus2, LayoutDashboard, LogOut, Menu, User, X } from 'lucide-react';
+import { Bookmark, FilePlus2, LayoutDashboard, LifeBuoy, LogOut, Menu, User, X } from 'lucide-react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import Avatar from './Avatar';
@@ -73,8 +73,9 @@ export default function Navbar() {
                   <Bookmark className="h-4 w-4" aria-hidden="true" />
                 </Link>
                 <Link
-                  to="/my-articles"
+                  to="/profile"
                   className="hidden items-center gap-2 rounded px-2 py-1 hover:bg-neutral-100 sm:flex"
+                  title="Профиль"
                 >
                   <Avatar user={user} size="sm" />
                   <span className="max-w-[120px] truncate normal-case tracking-normal">
@@ -150,13 +151,21 @@ export default function Navbar() {
                   <FilePlus2 className="h-4 w-4" aria-hidden="true" />
                   Предложить новость
                 </Link>
-                <Link to="/my-articles" className="flex items-center gap-2 py-3 text-sm font-semibold text-neutral-600">
+                <Link to="/profile" className="flex items-center gap-2 py-3 text-sm font-semibold text-neutral-600">
                   <User className="h-4 w-4" aria-hidden="true" />
+                  Профиль
+                </Link>
+                <Link to="/my-articles" className="flex items-center gap-2 py-3 text-sm font-semibold text-neutral-600">
+                  <FilePlus2 className="h-4 w-4" aria-hidden="true" />
                   Мои новости
                 </Link>
                 <Link to="/bookmarks" className="flex items-center gap-2 py-3 text-sm font-semibold text-neutral-600">
                   <Bookmark className="h-4 w-4" aria-hidden="true" />
                   Закладки
+                </Link>
+                <Link to="/support" className="flex items-center gap-2 py-3 text-sm font-semibold text-neutral-600">
+                  <LifeBuoy className="h-4 w-4" aria-hidden="true" />
+                  Поддержка
                 </Link>
                 {isAdmin && (
                   <Link to="/admin" className="flex items-center gap-2 py-3 text-sm font-semibold text-neutral-600">

@@ -70,6 +70,12 @@ export function AuthProvider({ children }) {
     return data.user;
   }, []);
 
+  const updateProfile = useCallback(async (patch) => {
+    const { data } = await api.patch('/auth/profile', patch);
+    setUser(data.user);
+    return data.user;
+  }, []);
+
   const resendVerification = useCallback(async (email) => {
     const { data } = await api.post('/auth/resend-verification', { email });
     return data;
@@ -83,11 +89,12 @@ export function AuthProvider({ children }) {
       register,
       verifyEmail,
       resendVerification,
+      updateProfile,
       logout,
       isAuthenticated: Boolean(user),
       isAdmin: user?.role === 'admin',
     }),
-    [user, loading, login, register, verifyEmail, resendVerification, logout]
+    [user, loading, login, register, verifyEmail, resendVerification, updateProfile, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

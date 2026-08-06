@@ -4,6 +4,7 @@ const { USER_FIELDS } = require('../middleware/authMiddleware');
 const settingsService = require('../services/settings');
 const mailer = require('../services/mailer');
 const audit = require('../services/audit');
+const { loadMessages, TICKET_SELECT } = require('./supportController');
 
 // GET /api/admin/settings
 async function getSettings(_req, res, next) {
@@ -98,6 +99,7 @@ async function stats(_req, res, next) {
       articlesRes,
       commentsRes,
       bookmarksRes,
+      openTicketsRes,
       allArticlesRes,
       topRes,
       pendingListRes,
@@ -110,6 +112,10 @@ async function stats(_req, res, next) {
       supabase.from('articles').select('id', { count: 'exact', head: true }),
       supabase.from('comments').select('id', { count: 'exact', head: true }),
       supabase.from('bookmarks').select('id', { count: 'exact', head: true }),
+      supabase
+        .from('support_tickets')
+        .select('id', { count: 'exact', head: true })
+        .neq('status', 'closed'),
       supabase.from('articles').select('status, category, views, created_at'),
       supabase
         .from('articles')
@@ -138,6 +144,7 @@ async function stats(_req, res, next) {
       articlesRes,
       commentsRes,
       bookmarksRes,
+      openTicketsRes,
       allArticlesRes,
       topRes,
       pendingListRes,
@@ -183,6 +190,7 @@ async function stats(_req, res, next) {
       rejectedArticles: byStatus.rejected,
       totalComments: commentsRes.count || 0,
       totalBookmarks: bookmarksRes.count || 0,
+      openTickets: openTicketsRes.count || 0,
       totalViews,
       byCategory,
       timeline,
@@ -584,7 +592,113 @@ async function exportCsv(req, res, next) {
   }
 }
 
+// GET /api/admin/support — все обращения, по умолчанию свежие сверху.
+async function listTickets(req, res, next) {
+  try {
+    const { status } = req.query;
+
+    let query = supabase
+      .from('support_tickets')
+      .select(TICKET_SELECT)
+      .order('updated_at', { ascending: false })
+      .limit(200);
+
+    if (status && ['new', 'in_progress', 'closed'].includes(status)) {
+      query = query.eq('status', status);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+
+    const items = await Promise.all(
+      (data || []).map(async (ticket) => ({ ...ticket, messages: await loadMessages(ticket.id) }))
+    );
+
+    res.json({ items });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// PATCH /api/admin/support/:id/status
+async function updateTicketStatus(req, res, next) {
+  try {
+    const { status } = req.body;
+
+    const { data, error } = await supabase
+      .from('support_tickets')
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq('id', req.params.id)
+      .select(TICKET_SELECT)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) {
+      return res.status(404).json({ message: 'Обращение не найдено' });
+    }
+
+    await audit.logAction(req.user, 'support.status', {
+      targetType: 'ticket',
+      targetId: data.id,
+      details: { subject: data.subject, status },
+    });
+
+    res.json({ item: { ...data, messages: await loadMessages(data.id) } });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// POST /api/admin/support/:id/messages — ответ редакции.
+async function answerTicket(req, res, next) {
+  try {
+    const { data: ticket, error } = await supabase
+      .from('support_tickets')
+      .select('id, subject')
+      .eq('id', req.params.id)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!ticket) {
+      return res.status(404).json({ message: 'Обращение не найдено' });
+    }
+
+    const { error: messageError } = await supabase.from('support_messages').insert({
+      ticket_id: ticket.id,
+      author_id: req.user.id,
+      author_name: req.user.username,
+      from_staff: true,
+      text: String(req.body.text).trim(),
+    });
+
+    if (messageError) throw messageError;
+
+    // Ответ переводит новое обращение в работу автоматически.
+    const { data: updated, error: updateError } = await supabase
+      .from('support_tickets')
+      .update({ status: 'in_progress', updated_at: new Date().toISOString() })
+      .eq('id', ticket.id)
+      .select(TICKET_SELECT)
+      .single();
+
+    if (updateError) throw updateError;
+
+    await audit.logAction(req.user, 'support.reply', {
+      targetType: 'ticket',
+      targetId: ticket.id,
+      details: { subject: ticket.subject },
+    });
+
+    res.status(201).json({ item: { ...updated, messages: await loadMessages(ticket.id) } });
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
+  listTickets,
+  updateTicketStatus,
+  answerTicket,
   listComments,
   deleteComment,
   bulkArticles,

@@ -267,8 +267,63 @@ async function resendVerification(req, res, next) {
   }
 }
 
+// PATCH /api/auth/profile — имя и аватар пользователя.
+async function updateProfile(req, res, next) {
+  try {
+    const patch = {};
+
+    if (req.body.username !== undefined) {
+      const username = String(req.body.username).trim();
+
+      const { data: taken, error: lookupError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('username', username)
+        .neq('id', req.user.id)
+        .maybeSingle();
+
+      if (lookupError) throw lookupError;
+      if (taken) {
+        return res.status(409).json({ message: 'Это имя пользователя уже занято' });
+      }
+
+      patch.username = username;
+    }
+
+    // Пустая строка — осознанное «убрать аватар», поэтому пишем null.
+    if (req.body.avatar_url !== undefined) {
+      const value = String(req.body.avatar_url).trim();
+      patch.avatar_url = value || null;
+    }
+
+    if (Object.keys(patch).length === 0) {
+      return res.status(400).json({ message: 'Не переданы поля для обновления' });
+    }
+
+    const { data, error } = await supabase
+      .from('users')
+      .update(patch)
+      .eq('id', req.user.id)
+      .select(USER_FIELDS)
+      .single();
+
+    if (error) throw error;
+    res.json({ user: publicUser(data) });
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function me(req, res) {
   res.json({ user: publicUser(req.user) });
 }
 
-module.exports = { register, login, verifyEmail, resendVerification, me, publicUser };
+module.exports = {
+  register,
+  login,
+  verifyEmail,
+  resendVerification,
+  updateProfile,
+  me,
+  publicUser,
+};

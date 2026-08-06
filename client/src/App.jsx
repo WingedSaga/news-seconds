@@ -13,6 +13,8 @@ import VerifyEmail from './pages/VerifyEmail';
 import Submit from './pages/Submit';
 import MyArticles from './pages/MyArticles';
 import Bookmarks from './pages/Bookmarks';
+import Profile from './pages/Profile';
+import Support from './pages/Support';
 import NotFound from './pages/NotFound';
 
 import AdminLayout from './pages/admin/AdminLayout';
@@ -23,6 +25,7 @@ import AdminUsers from './pages/admin/AdminUsers';
 import AdminSettings from './pages/admin/AdminSettings';
 import AdminComments from './pages/admin/AdminComments';
 import AdminLogs from './pages/admin/AdminLogs';
+import AdminSupport from './pages/admin/AdminSupport';
 
 export default function App() {
   return (
@@ -35,6 +38,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/support" element={<Support />} />
 
         <Route
           path="/submit"
@@ -49,6 +53,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <MyArticles />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
             </ProtectedRoute>
           }
         />
@@ -79,6 +91,7 @@ export default function App() {
         <Route path="articles" element={<AdminArticles />} />
         <Route path="users" element={<AdminUsers />} />
         <Route path="comments" element={<AdminComments />} />
+        <Route path="support" element={<AdminSupport />} />
         <Route path="logs" element={<AdminLogs />} />
         <Route path="settings" element={<AdminSettings />} />
         <Route path="*" element={<Navigate to="/admin" replace />} />

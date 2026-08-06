@@ -4,6 +4,9 @@ const { validate } = require('../middleware/validate');
 const { authMiddleware } = require('../middleware/authMiddleware');
 const { adminMiddleware } = require('../middleware/adminMiddleware');
 const {
+  listTickets,
+  updateTicketStatus,
+  answerTicket,
   listComments,
   deleteComment,
   bulkArticles,
@@ -114,6 +117,28 @@ router.post(
   ],
   validate,
   bulkArticles
+);
+
+router.get('/support', listTickets);
+
+router.patch(
+  '/support/:id/status',
+  [
+    param('id').isUUID().withMessage('Некорректный идентификатор обращения'),
+    body('status').isIn(['new', 'in_progress', 'closed']).withMessage('Недопустимый статус'),
+  ],
+  validate,
+  updateTicketStatus
+);
+
+router.post(
+  '/support/:id/messages',
+  [
+    param('id').isUUID().withMessage('Некорректный идентификатор обращения'),
+    body('text').trim().isLength({ min: 2, max: 5000 }).withMessage('Сообщение от 2 до 5000 символов'),
+  ],
+  validate,
+  answerTicket
 );
 
 router.get('/logs', listLogs);

@@ -23,6 +23,9 @@ export default function Footer() {
           <Link to="/submit" className="hover:text-brand">
             Предложить новость
           </Link>
+          <Link to="/support" className="hover:text-brand">
+            Поддержка
+          </Link>
         </nav>
 
         <p className="text-xs text-neutral-400">

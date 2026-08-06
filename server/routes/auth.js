@@ -8,6 +8,7 @@ const {
   login,
   verifyEmail,
   resendVerification,
+  updateProfile,
   me,
 } = require('../controllers/authController');
 
@@ -81,6 +82,27 @@ router.post(
   [body('email').trim().isEmail().withMessage('Введите корректный email').normalizeEmail()],
   validate,
   resendVerification
+);
+
+router.patch(
+  '/profile',
+  authMiddleware,
+  [
+    body('username')
+      .optional()
+      .trim()
+      .isLength({ min: 3, max: 30 })
+      .withMessage('Имя пользователя должно быть от 3 до 30 символов')
+      .matches(/^[a-zA-Zа-яА-ЯёЁ0-9_-]+$/)
+      .withMessage('Имя может содержать только буквы, цифры, дефис и подчёркивание'),
+    body('avatar_url')
+      .optional({ values: 'null' })
+      .trim()
+      .custom((value) => value === '' || /^https?:\/\/\S+$/.test(value))
+      .withMessage('Ссылка на аватар некорректна'),
+  ],
+  validate,
+  updateProfile
 );
 
 router.get('/me', authMiddleware, me);

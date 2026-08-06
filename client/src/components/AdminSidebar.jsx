@@ -4,6 +4,7 @@ import {
   FileStack,
   Home,
   LayoutDashboard,
+  LifeBuoy,
   MessageSquare,
   ScrollText,
   SlidersHorizontal,
@@ -16,6 +17,7 @@ const LINKS = [
   { to: '/admin/articles', label: 'Все статьи', icon: FileStack },
   { to: '/admin/comments', label: 'Комментарии', icon: MessageSquare },
   { to: '/admin/users', label: 'Пользователи', icon: Users },
+  { to: '/admin/support', label: 'Поддержка', icon: LifeBuoy },
   { to: '/admin/logs', label: 'Журнал', icon: ScrollText },
   { to: '/admin/settings', label: 'Управление', icon: SlidersHorizontal },
 ];

@@ -4,6 +4,7 @@ import {
   Bookmark,
   ClipboardList,
   Eye,
+  LifeBuoy,
   FileStack,
   MessageSquare,
   ShieldCheck,
@@ -74,6 +75,12 @@ export default function AdminDashboard() {
         <StatTile label="Просмотров" value={stats.totalViews} icon={Eye} />
         <StatTile label="Комментариев" value={stats.totalComments} icon={MessageSquare} />
         <StatTile label="Закладок" value={stats.totalBookmarks} icon={Bookmark} />
+        <StatTile
+          label="Открытых обращений"
+          value={stats.openTickets ?? 0}
+          icon={LifeBuoy}
+          tone={stats.openTickets > 0 ? 'warning' : 'neutral'}
+        />
         <StatTile
           label="Заблокировано"
           value={stats.bannedUsers}
