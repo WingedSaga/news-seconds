@@ -1,7 +1,9 @@
 const nodemailer = require('nodemailer');
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const RESEND_API_URL = 'https://api.resend.com/emails';
+// Базовый адрес вынесен в переменную: он подменяется в тестах и при
+// использовании собственного прокси до API.
+const RESEND_API_BASE = (process.env.RESEND_API_BASE || 'https://api.resend.com').replace(/\/$/, '');
 
 const SMTP_HOST = process.env.SMTP_HOST || 'smtp.gmail.com';
 const SMTP_PORT = Number(process.env.SMTP_PORT || 465);
@@ -99,7 +101,7 @@ function verificationTemplate(username, url) {
 
 // Отправка через HTTP API Resend.
 async function sendViaResend({ to, subject, text, html }) {
-  const response = await fetch(RESEND_API_URL, {
+  const response = await fetch(`${RESEND_API_BASE}/emails`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${RESEND_API_KEY}`,
@@ -126,7 +128,7 @@ async function verifyConnection() {
 
   if (provider === 'resend') {
     try {
-      const response = await fetch('https://api.resend.com/domains', {
+      const response = await fetch(`${RESEND_API_BASE}/domains`, {
         headers: { Authorization: `Bearer ${RESEND_API_KEY}` },
         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       });
