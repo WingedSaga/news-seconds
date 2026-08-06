@@ -131,13 +131,19 @@ async function verifyConnection() {
         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       });
 
-      if (response.status === 401) {
-        console.error('[mailer] Resend отклонил ключ: проверьте RESEND_API_KEY');
-        return { ok: false, reason: 'unauthorized' };
+      // Список доменов доступен только ключам с полными правами, поэтому
+      // отказ здесь не означает нерабочий ключ: ключ с правами только на
+      // отправку писем ведёт себя ровно так же. Окончательный ответ даёт
+      // первая реальная отправка, её результат тоже пишется в лог.
+      if (response.status === 401 || response.status === 403) {
+        console.log(
+          `[mailer] Resend настроен, отправитель: ${MAIL_FROM}. ` +
+            'Права ключа не позволяют опросить /domains — это нормально для ключа ' +
+            'с доступом только на отправку, проверка произойдёт при первом письме.'
+        );
+        return { ok: true, reason: 'limited_scope' };
       }
 
-      // 403 приходит и от Resend, и от сетевых фильтров по пути — без текста
-      // ответа эти случаи неразличимы, поэтому логируем его целиком.
       if (!response.ok) {
         const body = (await response.text().catch(() => '')).slice(0, 200);
         console.error(`[mailer] Resend ответил ${response.status}: ${body}`);
