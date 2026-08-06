@@ -21,7 +21,50 @@ const DEFAULT_FROM =
   provider === 'resend'
     ? 'НОВОСТИ СЕКУНДЫ <onboarding@resend.dev>'
     : `НОВОСТИ СЕКУНДЫ <${SMTP_USER}>`;
-const MAIL_FROM = process.env.MAIL_FROM || DEFAULT_FROM;
+
+// Публичные почтовые домены нельзя подтвердить в Resend: отправка с такого
+// адреса отклоняется всегда. Свой домен в этот список не попадёт, поэтому
+// настоящая настройка отправителя продолжает работать.
+const PUBLIC_MAILBOX_DOMAINS = new Set([
+  'gmail.com',
+  'googlemail.com',
+  'yandex.ru',
+  'ya.ru',
+  'mail.ru',
+  'bk.ru',
+  'inbox.ru',
+  'list.ru',
+  'outlook.com',
+  'hotmail.com',
+  'live.com',
+  'yahoo.com',
+  'icloud.com',
+  'proton.me',
+  'protonmail.com',
+]);
+
+function senderDomain(value) {
+  const match = String(value).match(/@([^>\s]+)/);
+  return match ? match[1].toLowerCase() : '';
+}
+
+function resolveFrom() {
+  const configured = process.env.MAIL_FROM;
+  if (!configured) return DEFAULT_FROM;
+
+  if (provider === 'resend' && PUBLIC_MAILBOX_DOMAINS.has(senderDomain(configured))) {
+    console.warn(
+      `[mailer] MAIL_FROM=${configured} игнорируется: домен ${senderDomain(configured)} ` +
+        `нельзя подтвердить в Resend. Отправитель: ${DEFAULT_FROM}. ` +
+        'Чтобы писать со своего адреса, подтвердите собственный домен на resend.com/domains.'
+    );
+    return DEFAULT_FROM;
+  }
+
+  return configured;
+}
+
+const MAIL_FROM = resolveFrom();
 
 const REQUEST_TIMEOUT_MS = 15000;
 
