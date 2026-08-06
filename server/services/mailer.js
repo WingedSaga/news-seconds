@@ -131,9 +131,17 @@ async function verifyConnection() {
         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       });
 
-      if (response.status === 401 || response.status === 403) {
+      if (response.status === 401) {
         console.error('[mailer] Resend отклонил ключ: проверьте RESEND_API_KEY');
         return { ok: false, reason: 'unauthorized' };
+      }
+
+      // 403 приходит и от Resend, и от сетевых фильтров по пути — без текста
+      // ответа эти случаи неразличимы, поэтому логируем его целиком.
+      if (!response.ok) {
+        const body = (await response.text().catch(() => '')).slice(0, 200);
+        console.error(`[mailer] Resend ответил ${response.status}: ${body}`);
+        return { ok: false, reason: `http_${response.status}` };
       }
 
       console.log(`[mailer] Resend принял ключ, отправитель: ${MAIL_FROM}`);
