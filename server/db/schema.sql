@@ -29,7 +29,10 @@ create table if not exists public.articles (
   title      text        not null,
   content    text        not null,
   category   text        not null check (category in ('news', 'joke', 'weather')),
+  -- Обложка: первая картинка галереи, дублируется для лент и карточек.
   image_url  text,
+  -- Галерея, до пяти изображений.
+  image_urls text[]      not null default '{}',
   -- Вложение: mp3 или mp4, тип нужен, чтобы выбрать проигрыватель.
   media_url  text,
   media_type text        check (media_type is null or media_type in ('audio', 'video')),

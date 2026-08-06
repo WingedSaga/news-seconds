@@ -41,6 +41,11 @@ router.post(
       .trim()
       .isURL()
       .withMessage('Ссылка на изображение некорректна'),
+    body('image_urls')
+      .optional()
+      .isArray({ max: 5 })
+      .withMessage('К новости можно приложить не больше пяти изображений'),
+    body('image_urls.*').trim().isURL().withMessage('Ссылка на изображение некорректна'),
     body('media_url')
       .optional({ values: 'falsy' })
       .trim()

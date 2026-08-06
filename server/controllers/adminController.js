@@ -263,7 +263,7 @@ async function updateArticleStatus(req, res, next) {
 async function updateArticle(req, res, next) {
   try {
     const patch = {};
-    for (const field of ['title', 'content', 'category', 'image_url', 'media_url', 'media_type', 'status']) {
+    for (const field of ['title', 'content', 'category', 'image_url', 'image_urls', 'media_url', 'media_type', 'status']) {
       if (req.body[field] !== undefined) {
         patch[field] = req.body[field] === '' ? null : req.body[field];
       }

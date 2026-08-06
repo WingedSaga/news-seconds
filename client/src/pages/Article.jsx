@@ -9,6 +9,42 @@ import EmptyState from '../components/EmptyState';
 import Avatar from '../components/Avatar';
 import { CATEGORY_LABELS, STATUS_CLASSES, STATUS_LABELS, formatDateTime, formatRelativeDate, formatViews } from '../utils/format';
 
+// Галерея: крупный кадр и полоса миниатюр под ним.
+function Gallery({ images, title }) {
+  const [active, setActive] = useState(0);
+
+  if (images.length === 0) return null;
+
+  return (
+    <div className="space-y-2">
+      <img
+        src={images[active]}
+        alt={`${title} — изображение ${active + 1}`}
+        className="h-64 w-full object-cover sm:h-96"
+      />
+
+      {images.length > 1 && (
+        <div className="flex flex-wrap gap-2 px-5 pt-2 sm:px-8">
+          {images.map((url, index) => (
+            <button
+              key={url}
+              type="button"
+              onClick={() => setActive(index)}
+              aria-label={`Показать изображение ${index + 1}`}
+              aria-current={index === active}
+              className={`overflow-hidden rounded border-2 transition-colors ${
+                index === active ? 'border-brand' : 'border-transparent hover:border-neutral-300'
+              }`}
+            >
+              <img src={url} alt="" className="h-14 w-20 object-cover" />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Article() {
   const { id } = useParams();
   const { user, isAuthenticated, isAdmin } = useAuth();
@@ -127,9 +163,16 @@ export default function Article() {
       <ErrorMessage message={error} />
 
       <article className="card overflow-hidden">
-        {article.image_url && (
-          <img src={article.image_url} alt={article.title} className="h-64 w-full object-cover sm:h-80" />
-        )}
+        <Gallery
+          images={
+            article.image_urls?.length > 0
+              ? article.image_urls
+              : article.image_url
+                ? [article.image_url]
+                : []
+          }
+          title={article.title}
+        />
 
         <div className="space-y-5 p-5 sm:p-8">
           <div className="flex flex-wrap items-center gap-2">

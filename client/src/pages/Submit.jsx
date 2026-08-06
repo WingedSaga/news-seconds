@@ -11,6 +11,7 @@ const CATEGORIES = [
 ];
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const MAX_IMAGES = 5;
 const MAX_MEDIA_BYTES = 50 * 1024 * 1024;
 const MEDIA_TYPES = ['audio/mpeg', 'audio/mp3', 'video/mp4'];
 
@@ -18,8 +19,7 @@ export default function Submit() {
   const navigate = useNavigate();
 
   const [form, setForm] = useState({ title: '', content: '', category: 'news' });
-  const [imageUrl, setImageUrl] = useState('');
-  const [imagePreview, setImagePreview] = useState('');
+  const [images, setImages] = useState([]);
   const [media, setMedia] = useState(null);
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
@@ -47,30 +47,44 @@ export default function Submit() {
   };
 
   const handleImageChange = async (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    const chosen = Array.from(event.target.files || []);
+    if (chosen.length === 0) return;
 
     setError('');
 
-    if (!file.type.startsWith('image/')) {
-      setError('Можно загрузить только изображение');
-      return;
-    }
-    if (file.size > MAX_IMAGE_BYTES) {
-      setError('Размер изображения не должен превышать 5 МБ');
+    const free = MAX_IMAGES - images.length;
+    if (free <= 0) {
+      setError(`Больше ${MAX_IMAGES} изображений добавить нельзя`);
+      event.target.value = '';
       return;
     }
 
-    const formData = new FormData();
-    formData.append('image', file);
+    // Лишние файлы отбрасываем, но остальные всё равно загружаем.
+    const accepted = chosen.slice(0, free);
+    if (chosen.length > free) {
+      setError(`Добавлены первые ${free}: всего можно не больше ${MAX_IMAGES} изображений`);
+    }
 
     setUploading(true);
     try {
-      const { data } = await api.post('/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      setImageUrl(data.url);
-      setImagePreview(data.url);
+      for (const file of accepted) {
+        if (!file.type.startsWith('image/')) {
+          setError('Можно загружать только изображения');
+          continue;
+        }
+        if (file.size > MAX_IMAGE_BYTES) {
+          setError(`Файл «${file.name}» больше 5 МБ`);
+          continue;
+        }
+
+        const formData = new FormData();
+        formData.append('image', file);
+
+        const { data } = await api.post('/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        setImages((prev) => [...prev, { url: data.url, name: file.name }]);
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -78,6 +92,8 @@ export default function Submit() {
       event.target.value = '';
     }
   };
+
+  const removeImage = (url) => setImages((prev) => prev.filter((image) => image.url !== url));
 
   const handleMediaChange = async (event) => {
     const file = event.target.files?.[0];
@@ -124,7 +140,7 @@ export default function Submit() {
         title: form.title.trim(),
         content: form.content.trim(),
         category: form.category,
-        image_url: imageUrl || undefined,
+        image_urls: images.map((image) => image.url),
         media_url: media?.url || undefined,
         media_type: media?.type || undefined,
       });
@@ -216,37 +232,56 @@ export default function Submit() {
         </div>
 
         <div className="space-y-2">
-          <span className="text-sm font-semibold text-neutral-700">Изображение</span>
+          <span className="text-sm font-semibold text-neutral-700">
+            Изображения ({images.length} из {MAX_IMAGES})
+          </span>
 
-          {imagePreview ? (
-            <div className="relative w-fit">
-              <img src={imagePreview} alt="Предпросмотр" className="h-40 rounded-md border border-neutral-200 object-cover" />
-              <button
-                type="button"
-                onClick={() => {
-                  setImageUrl('');
-                  setImagePreview('');
-                }}
-                className="absolute -right-2 -top-2 rounded-full bg-white p-1 text-neutral-500 shadow hover:text-red-600"
-                aria-label="Удалить изображение"
-              >
-                <X className="h-4 w-4" aria-hidden="true" />
-              </button>
-            </div>
-          ) : (
+          {images.length > 0 && (
+            <ul className="flex flex-wrap gap-3">
+              {images.map((image, index) => (
+                <li key={image.url} className="relative">
+                  <img
+                    src={image.url}
+                    alt={image.name}
+                    className="h-24 w-32 rounded-md border border-neutral-200 object-cover"
+                  />
+                  {index === 0 && (
+                    <span className="absolute bottom-1 left-1 rounded bg-brand px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                      Обложка
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => removeImage(image.url)}
+                    className="absolute -right-2 -top-2 rounded-full bg-white p-1 text-neutral-500 shadow hover:text-red-600"
+                    aria-label={`Удалить ${image.name}`}
+                  >
+                    <X className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {images.length < MAX_IMAGES && (
             <label className="btn-outline w-fit cursor-pointer">
               <ImagePlus className="h-4 w-4" aria-hidden="true" />
-              {uploading ? 'Загружаем...' : 'Выбрать файл'}
+              {uploading ? 'Загружаем...' : images.length === 0 ? 'Выбрать файлы' : 'Добавить ещё'}
               <input
                 type="file"
                 accept="image/*"
+                multiple
                 onChange={handleImageChange}
                 disabled={uploading}
                 className="hidden"
               />
             </label>
           )}
-          <p className="text-xs text-neutral-400">JPG, PNG, WEBP или GIF, до 5 МБ. Поле необязательное.</p>
+
+          <p className="text-xs text-neutral-400">
+            JPG, PNG, WEBP или GIF, до 5 МБ каждое, не больше {MAX_IMAGES} штук.
+            Первое изображение станет обложкой в ленте. Поле необязательное.
+          </p>
         </div>
 
         <div className="space-y-2">

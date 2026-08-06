@@ -2,12 +2,15 @@ const { supabase } = require('../db/supabase');
 const settings = require('../services/settings');
 
 const AUTHOR_SELECT = 'author:users (id, username, avatar_url)';
-const LIST_SELECT = `id, title, content, category, image_url, media_url, media_type, author_id, status, views, created_at, ${AUTHOR_SELECT}`;
+const LIST_SELECT = `id, title, content, category, image_url, image_urls, media_url, media_type, author_id, status, views, created_at, ${AUTHOR_SELECT}`;
 
 // В значениях фильтров PostgREST спецсимволы ломают выражение `or`, убираем их.
 function sanitizeSearch(value) {
   return String(value).replace(/[,()%*\\]/g, ' ').trim();
 }
+
+// Ограничение на число картинок в одной новости.
+const MAX_IMAGES = 5;
 
 function parsePaging(query) {
   const page = Math.max(1, parseInt(query.page, 10) || 1);
@@ -154,7 +157,14 @@ async function getArticle(req, res, next) {
 // POST /api/articles — отправка новости на модерацию.
 async function createArticle(req, res, next) {
   try {
-    const { title, content, category, image_url, media_url, media_type } = req.body;
+    const { title, content, category, image_url, image_urls, media_url, media_type } = req.body;
+
+    // Галерея — источник истины, image_url остаётся обложкой для карточек
+    // и лент, чтобы им не приходилось разбирать массив.
+    const gallery = Array.isArray(image_urls)
+      ? image_urls.map((url) => String(url).trim()).filter(Boolean).slice(0, MAX_IMAGES)
+      : [];
+    const cover = gallery[0] || (image_url ? String(image_url).trim() : null);
     // При включённом автоодобрении материал публикуется без модерации.
     const status = (await settings.getSetting('auto_approve_articles')) ? 'approved' : 'pending';
 
@@ -164,7 +174,8 @@ async function createArticle(req, res, next) {
         title: String(title).trim(),
         content: String(content).trim(),
         category,
-        image_url: image_url ? String(image_url).trim() : null,
+        image_url: cover,
+        image_urls: gallery.length > 0 ? gallery : cover ? [cover] : [],
         media_url: media_url ? String(media_url).trim() : null,
         media_type: media_url ? media_type : null,
         author_id: req.user.id,
@@ -250,4 +261,5 @@ module.exports = {
   listBookmarks,
   toggleBookmark,
   LIST_SELECT,
+  MAX_IMAGES,
 };
