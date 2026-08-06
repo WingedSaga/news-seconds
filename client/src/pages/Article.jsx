@@ -184,7 +184,7 @@ export default function Article() {
             )}
           </div>
 
-          <h1 className="font-serif text-4xl font-black leading-tight text-neutral-900">{article.title}</h1>
+          <h1 className="font-serif text-4xl font-black leading-[1.1] text-ink sm:text-5xl">{article.title}</h1>
 
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-neutral-200 pb-4 text-sm text-neutral-500">
             <span className="flex items-center gap-2">
@@ -219,7 +219,7 @@ export default function Article() {
             </figure>
           )}
 
-          <div className="whitespace-pre-wrap text-base leading-relaxed text-neutral-800">{article.content}</div>
+          <div className="prose-news dropcap whitespace-pre-wrap">{article.content}</div>
 
           {isAuthenticated && (
             <div className="flex justify-end border-t border-neutral-200 pt-4">

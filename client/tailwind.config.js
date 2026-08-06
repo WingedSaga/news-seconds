@@ -11,6 +11,10 @@ export default {
           dark: '#1B5E20',
         },
         surface: '#F5F5F5',
+        // Тёплая бумага вместо стерильно-серого фона: газета не бывает
+        // цвета интерфейса, и это главное, что задаёт ощущение печати.
+        paper: '#FBFAF7',
+        ink: '#1A1A1A',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],

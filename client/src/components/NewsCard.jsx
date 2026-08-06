@@ -13,14 +13,12 @@ export default function NewsCard({ article, featured = false }) {
 
   return (
     <article
-      className={`card group flex overflow-hidden transition-shadow hover:shadow-md ${
-        featured ? 'flex-col lg:flex-row' : 'flex-col'
-      }`}
+      className={`group flex ${featured ? 'flex-col gap-5 lg:flex-row' : 'flex-col gap-3'}`}
     >
       <Link
         to={`/article/${id}`}
         className={`relative block shrink-0 overflow-hidden bg-neutral-100 ${
-          featured ? 'h-56 lg:h-auto lg:w-1/2' : 'h-44'
+          featured ? 'h-64 sm:h-80 lg:h-auto lg:w-1/2' : 'h-40'
         }`}
       >
         {image_url ? (
@@ -37,7 +35,7 @@ export default function NewsCard({ article, featured = false }) {
         )}
       </Link>
 
-      <div className={`flex flex-1 flex-col gap-3 p-4 ${featured ? 'lg:p-6' : ''}`}>
+      <div className="flex flex-1 flex-col gap-2">
         <div className="flex flex-wrap items-center gap-2">
           <span className="pill w-fit">{CATEGORY_LABELS[category] || category}</span>
           {imageCount > 1 && (
@@ -59,8 +57,8 @@ export default function NewsCard({ article, featured = false }) {
         </div>
 
         <h3
-          className={`font-serif font-bold leading-tight text-neutral-900 ${
-            featured ? 'text-3xl lg:text-4xl' : 'text-xl'
+          className={`font-serif font-bold leading-[1.15] text-ink ${
+            featured ? 'text-3xl lg:text-[2.75rem]' : 'text-xl'
           }`}
         >
           <Link to={`/article/${id}`} className="hover:text-brand">
@@ -68,11 +66,15 @@ export default function NewsCard({ article, featured = false }) {
           </Link>
         </h3>
 
-        <p className={`text-sm text-neutral-600 ${featured ? 'line-clamp-4' : 'line-clamp-3'}`}>
+        <p
+          className={`font-serif text-neutral-700 ${
+            featured ? 'line-clamp-4 text-lg leading-relaxed' : 'line-clamp-3 text-[15px] leading-snug'
+          }`}
+        >
           {excerpt(content, featured ? 280 : 140)}
         </p>
 
-        <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 pt-2 text-xs text-neutral-500">
+        <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-neutral-200 pt-2 text-xs text-neutral-500">
           <span className="flex items-center gap-1.5">
             <Clock className="h-3.5 w-3.5" aria-hidden="true" />
             {formatRelativeDate(created_at)}

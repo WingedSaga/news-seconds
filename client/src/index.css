@@ -8,7 +8,7 @@
   }
 
   body {
-    @apply bg-surface text-neutral-800 antialiased;
+    @apply bg-paper text-ink antialiased;
   }
 
   :focus-visible {
@@ -38,8 +38,25 @@
     @apply btn border border-red-300 text-red-700 hover:bg-red-600 hover:text-white hover:border-red-600;
   }
 
+  /* Плоская карточка на волосяной линейке: тени и скругления выдают
+     интерфейс, газетная полоса держится на линейках и воздухе. */
   .card {
-    @apply rounded-lg border border-neutral-200 bg-white shadow-sm;
+    @apply rounded-sm border border-neutral-300/70 bg-white;
+  }
+
+  /* Надзаголовок: мелкие прописные над заголовком, как рубрика в газете. */
+  .kicker {
+    @apply text-[11px] font-bold uppercase tracking-[0.18em] text-brand;
+  }
+
+  /* Читаемая колонка основного текста с засечками. */
+  .prose-news {
+    @apply font-serif text-[17px] leading-[1.75] text-ink;
+  }
+
+  /* Буквица у первого абзаца материала. */
+  .dropcap::first-letter {
+    @apply float-left mr-2 mt-1 font-serif text-[3.25rem] font-black leading-[0.8] text-brand;
   }
 
   .field {
@@ -49,16 +66,18 @@
 
   /* Заголовок раздела: подпись с засечками на всю ширину полосы. */
   .section-title {
-    @apply flex items-baseline justify-between gap-4 border-b-2 border-neutral-900 pb-2 font-serif
-      text-xl font-black uppercase tracking-widest text-neutral-900;
+    @apply flex items-baseline justify-between gap-4 border-b-2 border-ink pb-2 font-serif
+      text-xl font-black uppercase tracking-[0.16em] text-ink;
   }
 
   .pill {
-    @apply inline-flex items-center rounded-full bg-brand px-3 py-1 text-xs font-semibold text-white;
+    @apply inline-flex items-center rounded-sm bg-brand px-2 py-0.5 text-[10px] font-bold uppercase
+      tracking-[0.12em] text-white;
   }
 
   .pill-accent {
-    @apply inline-flex items-center rounded-full bg-brand-accent px-3 py-1 text-xs font-semibold text-brand-dark;
+    @apply inline-flex items-center rounded-sm bg-brand-accent px-2 py-0.5 text-[10px] font-bold
+      uppercase tracking-[0.12em] text-brand-dark;
   }
 }
 

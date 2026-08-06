@@ -67,6 +67,9 @@ app.listen(PORT, () => {
   // Результат проверки только пишем в лог: недоступный SMTP не повод
   // не поднимать сайт, остальные разделы от почты не зависят.
   if (isEnabled) verifyConnection();
+
+  // Проверка схемы: отставшая база — самая частая причина ошибок 500.
+  require('./db/checkSchema').checkSchema();
 });
 
 module.exports = app;
