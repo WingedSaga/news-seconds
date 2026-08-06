@@ -9,6 +9,7 @@ router.get('/', async (_req, res, next) => {
   try {
     const values = await getSettings();
     res.json({
+      site_title: values.site_title,
       site_tagline: values.site_tagline,
       registration_open: values.registration_open,
       comments_enabled: values.comments_enabled,

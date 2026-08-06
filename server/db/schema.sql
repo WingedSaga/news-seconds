@@ -75,8 +75,24 @@ insert into public.settings (key, value) values
   ('registration_open',    'true'::jsonb),
   ('comments_enabled',     'true'::jsonb),
   ('auto_approve_articles','false'::jsonb),
-  ('site_tagline',         '"Новости, анекдоты и погода — каждую секунду"'::jsonb)
+  ('site_tagline',         '"Новости, анекдоты и погода — каждую секунду"'::jsonb),
+  ('maintenance_mode',     'false'::jsonb),
+  ('site_title',           '"НОВОСТИ СЕКУНДЫ"'::jsonb)
 on conflict (key) do nothing;
+
+-- Журнал действий администраторов ------------------------------------------
+create table if not exists public.admin_actions (
+  id          uuid primary key default gen_random_uuid(),
+  actor_id    uuid references public.users (id) on delete set null,
+  actor_name  text        not null,
+  action      text        not null,
+  target_type text,
+  target_id   text,
+  details     jsonb,
+  created_at  timestamptz not null default now()
+);
+
+create index if not exists admin_actions_created_at_idx on public.admin_actions (created_at desc);
 
 -- Атомарный инкремент счётчика просмотров -----------------------------------
 create or replace function public.increment_article_views(article_id uuid)
@@ -93,6 +109,7 @@ alter table public.articles  enable row level security;
 alter table public.comments  enable row level security;
 alter table public.bookmarks enable row level security;
 alter table public.settings  enable row level security;
+alter table public.admin_actions enable row level security;
 
 -- Права для роли service_role, под которой работает сервер.
 -- Выдаются явно: полагаться на привилегии по умолчанию нельзя, иначе

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { MailWarning, Save, ShieldPlus } from 'lucide-react';
+import { Download, MailWarning, Save, ShieldPlus } from 'lucide-react';
 import api from '../../api/axios';
 import Loader from '../../components/Loader';
 import ErrorMessage from '../../components/ErrorMessage';
@@ -20,6 +20,11 @@ const TOGGLES = [
     key: 'comments_enabled',
     label: 'Комментарии',
     hint: 'Когда выключено, оставлять новые комментарии нельзя.',
+  },
+  {
+    key: 'maintenance_mode',
+    label: 'Режим обслуживания',
+    hint: 'Сайт отвечает заглушкой всем, кроме администраторов. Админ-панель и вход работают.',
   },
   {
     key: 'auto_approve_articles',
@@ -63,7 +68,9 @@ export default function AdminSettings() {
   const [saved, setSaved] = useState('');
 
   const [tagline, setTagline] = useState('');
-  const [savingTagline, setSavingTagline] = useState(false);
+  const [title, setTitle] = useState('');
+  const [savingTexts, setSavingTexts] = useState(false);
+  const [exporting, setExporting] = useState('');
 
   const [promoteEmail, setPromoteEmail] = useState('');
   const [promoting, setPromoting] = useState(false);
@@ -78,6 +85,7 @@ export default function AdminSettings() {
         setSettings(data.settings);
         setMail(data.mail);
         setTagline(data.settings.site_tagline || '');
+        setTitle(data.settings.site_title || '');
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -105,11 +113,33 @@ export default function AdminSettings() {
     }
   };
 
-  const saveTagline = async (event) => {
+  const saveTexts = async (event) => {
     event.preventDefault();
-    setSavingTagline(true);
-    await save({ site_tagline: tagline.trim() });
-    setSavingTagline(false);
+    setSavingTexts(true);
+    await save({ site_title: title.trim(), site_tagline: tagline.trim() });
+    setSavingTexts(false);
+  };
+
+  // Выгрузка идёт через тот же axios с токеном, поэтому файл получаем
+  // как blob и отдаём браузеру ссылкой, а не простым переходом по адресу.
+  const exportCsv = async (entity) => {
+    setExporting(entity);
+    setError('');
+    try {
+      const response = await api.get(`/admin/export/${entity}`, { responseType: 'blob' });
+      const url = URL.createObjectURL(new Blob([response.data], { type: 'text/csv;charset=utf-8' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${entity}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setExporting('');
+    }
   };
 
   const promote = async (event) => {
@@ -170,20 +200,68 @@ export default function AdminSettings() {
           )}
 
           <section className="card space-y-3 p-5">
-            <h2 className="text-base font-bold text-neutral-900">Подзаголовок газеты</h2>
-            <form onSubmit={saveTagline} className="flex flex-col gap-2 sm:flex-row">
-              <input
-                value={tagline}
-                onChange={(event) => setTagline(event.target.value)}
-                maxLength={200}
-                className="field"
-                placeholder="Строка под названием на главной"
-              />
-              <button type="submit" className="btn-primary shrink-0" disabled={savingTagline}>
+            <h2 className="text-base font-bold text-neutral-900">Название и подзаголовок</h2>
+            <form onSubmit={saveTexts} className="space-y-3">
+              <div className="space-y-1">
+                <label htmlFor="site-title" className="text-xs font-semibold text-neutral-600">
+                  Название издания
+                </label>
+                <input
+                  id="site-title"
+                  value={title}
+                  onChange={(event) => setTitle(event.target.value)}
+                  maxLength={80}
+                  className="field"
+                  placeholder="НОВОСТИ СЕКУНДЫ"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label htmlFor="site-tagline" className="text-xs font-semibold text-neutral-600">
+                  Подзаголовок под названием
+                </label>
+                <input
+                  id="site-tagline"
+                  value={tagline}
+                  onChange={(event) => setTagline(event.target.value)}
+                  maxLength={200}
+                  className="field"
+                  placeholder="Строка под названием на главной"
+                />
+              </div>
+
+              <button type="submit" className="btn-primary" disabled={savingTexts}>
                 <Save className="h-4 w-4" aria-hidden="true" />
                 Сохранить
               </button>
             </form>
+          </section>
+
+          <section className="card space-y-3 p-5">
+            <h2 className="text-base font-bold text-neutral-900">Выгрузка данных</h2>
+            <p className="text-xs text-neutral-500">
+              Таблицы в формате CSV, открываются в Excel и Google Таблицах.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                className="btn-outline"
+                disabled={exporting === 'users'}
+                onClick={() => exportCsv('users')}
+              >
+                <Download className="h-4 w-4" aria-hidden="true" />
+                {exporting === 'users' ? 'Готовим...' : 'Пользователи'}
+              </button>
+              <button
+                type="button"
+                className="btn-outline"
+                disabled={exporting === 'articles'}
+                onClick={() => exportCsv('articles')}
+              >
+                <Download className="h-4 w-4" aria-hidden="true" />
+                {exporting === 'articles' ? 'Готовим...' : 'Статьи'}
+              </button>
+            </div>
           </section>
 
           <section className="card space-y-3 p-5">

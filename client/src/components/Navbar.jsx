@@ -26,6 +26,7 @@ export default function Navbar() {
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [tagline, setTagline] = useState('');
+  const [title, setTitle] = useState('НОВОСТИ СЕКУНДЫ');
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -38,7 +39,9 @@ export default function Navbar() {
     api
       .get('/settings')
       .then(({ data }) => {
-        if (!cancelled) setTagline(data.site_tagline || '');
+        if (cancelled) return;
+        setTagline(data.site_tagline || '');
+        if (data.site_title) setTitle(data.site_title);
       })
       .catch(() => {
         // Подзаголовок необязателен: без него шапка просто чуть короче.
@@ -47,6 +50,10 @@ export default function Navbar() {
       cancelled = true;
     };
   }, []);
+
+  // Название набирается в две строки: первое слово крупно, остальное — разрядкой.
+  const [titleTop, ...titleRest] = title.trim().split(/\s+/);
+  const titleBottom = titleRest.join(' ');
 
   const handleLogout = () => {
     logout();
@@ -109,11 +116,13 @@ export default function Navbar() {
         <div className="py-5 text-center sm:py-7">
           <Link to="/" className="inline-block">
             <h1 className="font-serif text-4xl font-black uppercase leading-none tracking-[0.12em] text-neutral-900 sm:text-6xl">
-              Новости
+              {titleTop}
             </h1>
-            <span className="mt-1 block font-serif text-lg uppercase tracking-[0.5em] text-brand sm:text-2xl">
-              Секунды
-            </span>
+            {titleBottom && (
+              <span className="mt-1 block font-serif text-lg uppercase tracking-[0.5em] text-brand sm:text-2xl">
+                {titleBottom}
+              </span>
+            )}
           </Link>
 
           {tagline && (

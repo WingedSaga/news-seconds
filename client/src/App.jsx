@@ -21,6 +21,8 @@ import AdminPending from './pages/admin/AdminPending';
 import AdminArticles from './pages/admin/AdminArticles';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminSettings from './pages/admin/AdminSettings';
+import AdminComments from './pages/admin/AdminComments';
+import AdminLogs from './pages/admin/AdminLogs';
 
 export default function App() {
   return (
@@ -76,6 +78,8 @@ export default function App() {
         <Route path="pending" element={<AdminPending />} />
         <Route path="articles" element={<AdminArticles />} />
         <Route path="users" element={<AdminUsers />} />
+        <Route path="comments" element={<AdminComments />} />
+        <Route path="logs" element={<AdminLogs />} />
         <Route path="settings" element={<AdminSettings />} />
         <Route path="*" element={<Navigate to="/admin" replace />} />
       </Route>

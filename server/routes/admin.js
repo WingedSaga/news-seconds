@@ -4,6 +4,12 @@ const { validate } = require('../middleware/validate');
 const { authMiddleware } = require('../middleware/authMiddleware');
 const { adminMiddleware } = require('../middleware/adminMiddleware');
 const {
+  listComments,
+  deleteComment,
+  bulkArticles,
+  deleteUser,
+  listLogs,
+  exportCsv,
   getSettings,
   updateSettings,
   promoteByEmail,
@@ -33,11 +39,17 @@ router.patch(
     body('registration_open').optional().isBoolean().withMessage('Некорректное значение').toBoolean(),
     body('comments_enabled').optional().isBoolean().withMessage('Некорректное значение').toBoolean(),
     body('auto_approve_articles').optional().isBoolean().withMessage('Некорректное значение').toBoolean(),
+    body('maintenance_mode').optional().isBoolean().withMessage('Некорректное значение').toBoolean(),
     body('site_tagline')
       .optional()
       .trim()
       .isLength({ max: 200 })
       .withMessage('Подзаголовок не длиннее 200 символов'),
+    body('site_title')
+      .optional()
+      .trim()
+      .isLength({ min: 2, max: 80 })
+      .withMessage('Название от 2 до 80 символов'),
   ],
   validate,
   updateSettings
@@ -84,7 +96,43 @@ router.delete(
   deleteArticle
 );
 
+router.get('/comments', listComments);
+
+router.delete(
+  '/comments/:id',
+  [param('id').isUUID().withMessage('Некорректный идентификатор комментария')],
+  validate,
+  deleteComment
+);
+
+router.post(
+  '/articles/bulk',
+  [
+    body('ids').isArray({ min: 1, max: 100 }).withMessage('Выберите хотя бы одну статью'),
+    body('ids.*').isUUID().withMessage('Некорректный идентификатор статьи'),
+    body('action').isIn(['approve', 'reject', 'delete']).withMessage('Неизвестное действие'),
+  ],
+  validate,
+  bulkArticles
+);
+
+router.get('/logs', listLogs);
+
+router.get(
+  '/export/:entity',
+  [param('entity').isIn(['users', 'articles']).withMessage('Неизвестный тип выгрузки')],
+  validate,
+  exportCsv
+);
+
 router.get('/users', listUsers);
+
+router.delete(
+  '/users/:id',
+  [param('id').isUUID().withMessage('Некорректный идентификатор пользователя')],
+  validate,
+  deleteUser
+);
 
 router.patch(
   '/users/:id/role',

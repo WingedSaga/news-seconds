@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Eye, Pencil, Save, Trash2, X } from 'lucide-react';
+import { Check, Eye, Pencil, Save, Trash2, X } from 'lucide-react';
 import api from '../../api/axios';
 import Loader from '../../components/Loader';
 import ErrorMessage from '../../components/ErrorMessage';
@@ -25,6 +25,8 @@ export default function AdminArticles() {
   const [editing, setEditing] = useState(null);
   const [saving, setSaving] = useState(false);
   const [reloadToken, setReloadToken] = useState(0);
+  const [selected, setSelected] = useState([]);
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search.trim()), 300);
@@ -41,7 +43,10 @@ export default function AdminArticles() {
         params: { ...(status ? { status } : {}), ...(debouncedSearch ? { search: debouncedSearch } : {}) },
       })
       .then(({ data }) => {
-        if (!cancelled) setItems(data.items);
+        if (cancelled) return;
+        setItems(data.items);
+        // Выбор относится к прежней выборке, после перезагрузки он неверен.
+        setSelected([]);
       })
       .catch((err) => {
         if (!cancelled) setError(err.message);
@@ -56,6 +61,34 @@ export default function AdminArticles() {
   }, [status, debouncedSearch, reloadToken]);
 
   const reload = useCallback(() => setReloadToken((token) => token + 1), []);
+
+  const toggleOne = (id) => {
+    setSelected((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
+  };
+
+  const toggleAll = () => {
+    setSelected((prev) => (prev.length === items.length ? [] : items.map((item) => item.id)));
+  };
+
+  const runBulk = async (action) => {
+    const labels = { approve: 'одобрить', reject: 'отклонить', delete: 'удалить' };
+    // eslint-disable-next-line no-alert
+    if (!window.confirm(`Выбрано материалов: ${selected.length}. Действительно ${labels[action]}?`)) {
+      return;
+    }
+
+    setBulkBusy(true);
+    setError('');
+    try {
+      await api.post('/admin/articles/bulk', { ids: selected, action });
+      setSelected([]);
+      reload();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBulkBusy(false);
+    }
+  };
 
   const startEdit = (article) => {
     setEditing({
@@ -139,6 +172,26 @@ export default function AdminArticles() {
         </div>
       </div>
 
+      {selected.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 rounded-md border border-brand-accent bg-brand-accent/20 p-3">
+          <span className="mr-auto text-sm font-semibold text-brand-dark">
+            Выбрано: {selected.length}
+          </span>
+          <button type="button" className="btn-primary" disabled={bulkBusy} onClick={() => runBulk('approve')}>
+            <Check className="h-4 w-4" aria-hidden="true" />
+            Одобрить
+          </button>
+          <button type="button" className="btn-outline" disabled={bulkBusy} onClick={() => runBulk('reject')}>
+            <X className="h-4 w-4" aria-hidden="true" />
+            Отклонить
+          </button>
+          <button type="button" className="btn-danger" disabled={bulkBusy} onClick={() => runBulk('delete')}>
+            <Trash2 className="h-4 w-4" aria-hidden="true" />
+            Удалить
+          </button>
+        </div>
+      )}
+
       <ErrorMessage message={error} onRetry={reload} />
 
       {loading ? (
@@ -150,6 +203,15 @@ export default function AdminArticles() {
           <table className="w-full min-w-[720px] text-left text-sm">
             <thead className="border-b border-neutral-200 bg-neutral-50 text-xs uppercase tracking-wide text-neutral-500">
               <tr>
+                <th className="px-4 py-3">
+                  <input
+                    type="checkbox"
+                    aria-label="Выбрать все"
+                    className="h-4 w-4 accent-[#2E7D32]"
+                    checked={items.length > 0 && selected.length === items.length}
+                    onChange={toggleAll}
+                  />
+                </th>
                 <th className="px-4 py-3">Заголовок</th>
                 <th className="px-4 py-3">Категория</th>
                 <th className="px-4 py-3">Статус</th>
@@ -161,6 +223,15 @@ export default function AdminArticles() {
             <tbody className="divide-y divide-neutral-100">
               {items.map((article) => (
                 <tr key={article.id} className="hover:bg-neutral-50">
+                  <td className="px-4 py-3">
+                    <input
+                      type="checkbox"
+                      aria-label={`Выбрать «${article.title}»`}
+                      className="h-4 w-4 accent-[#2E7D32]"
+                      checked={selected.includes(article.id)}
+                      onChange={() => toggleOne(article.id)}
+                    />
+                  </td>
                   <td className="max-w-[280px] truncate px-4 py-3 font-semibold text-neutral-800">
                     {article.title}
                   </td>

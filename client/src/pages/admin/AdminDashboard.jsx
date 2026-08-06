@@ -1,17 +1,20 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ClipboardList, Eye, FileStack, MessageSquare, Users } from 'lucide-react';
+import {
+  Bookmark,
+  ClipboardList,
+  Eye,
+  FileStack,
+  MessageSquare,
+  ShieldCheck,
+  UserPlus,
+  Users,
+} from 'lucide-react';
 import api from '../../api/axios';
 import Loader from '../../components/Loader';
 import ErrorMessage from '../../components/ErrorMessage';
-
-const CARDS = [
-  { key: 'totalUsers', label: 'Пользователей', icon: Users, to: '/admin/users' },
-  { key: 'pendingArticles', label: 'На модерации', icon: ClipboardList, to: '/admin/pending' },
-  { key: 'totalArticles', label: 'Всего статей', icon: FileStack, to: '/admin/articles' },
-  { key: 'totalViews', label: 'Просмотров', icon: Eye },
-  { key: 'totalComments', label: 'Комментариев', icon: MessageSquare },
-];
+import { BarList, StatTile, TimelineChart } from '../../components/admin/Charts';
+import { CATEGORY_LABELS, excerpt, formatRelativeDate } from '../../utils/format';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
@@ -32,42 +35,136 @@ export default function AdminDashboard() {
     load();
   }, [load]);
 
+  if (loading) return <Loader label="Собираем статистику..." />;
+
+  if (!stats) {
+    return <ErrorMessage message={error} onRetry={load} />;
+  }
+
+  const categoryItems = Object.entries(stats.byCategory).map(([key, value]) => ({
+    label: CATEGORY_LABELS[key] || key,
+    value,
+  }));
+
+  const statusItems = [
+    { label: 'Одобрено', value: stats.approvedArticles },
+    { label: 'На модерации', value: stats.pendingArticles },
+    { label: 'Отклонено', value: stats.rejectedArticles },
+  ];
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-extrabold text-neutral-900">Обзор</h1>
-        <p className="text-sm text-neutral-500">Ключевые показатели издания.</p>
+        <p className="text-sm text-neutral-500">Состояние издания на текущий момент.</p>
       </div>
 
       <ErrorMessage message={error} onRetry={load} />
 
-      {loading ? (
-        <Loader />
-      ) : stats ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {CARDS.map(({ key, label, icon: Icon, to }) => {
-            const content = (
-              <div className="card flex items-center gap-4 p-5 transition-shadow hover:shadow-md">
-                <span className="rounded-md bg-brand-accent p-3 text-brand-dark">
-                  <Icon className="h-6 w-6" aria-hidden="true" />
-                </span>
-                <div>
-                  <p className="text-2xl font-extrabold text-neutral-900">{stats[key] ?? 0}</p>
-                  <p className="text-sm text-neutral-500">{label}</p>
-                </div>
-              </div>
-            );
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatTile label="Пользователей" value={stats.totalUsers} icon={Users} hint={`${stats.admins} с правами админа`} />
+        <StatTile label="Новых за неделю" value={stats.newUsers} icon={UserPlus} />
+        <StatTile
+          label="На модерации"
+          value={stats.pendingArticles}
+          icon={ClipboardList}
+          tone={stats.pendingArticles > 0 ? 'warning' : 'neutral'}
+        />
+        <StatTile label="Всего статей" value={stats.totalArticles} icon={FileStack} />
+        <StatTile label="Просмотров" value={stats.totalViews} icon={Eye} />
+        <StatTile label="Комментариев" value={stats.totalComments} icon={MessageSquare} />
+        <StatTile label="Закладок" value={stats.totalBookmarks} icon={Bookmark} />
+        <StatTile
+          label="Заблокировано"
+          value={stats.bannedUsers}
+          icon={ShieldCheck}
+          tone={stats.bannedUsers > 0 ? 'danger' : 'neutral'}
+        />
+      </div>
 
-            return to ? (
-              <Link key={key} to={to} className="block">
-                {content}
-              </Link>
-            ) : (
-              <div key={key}>{content}</div>
-            );
-          })}
+      <TimelineChart title="Публикации за две недели" points={stats.timeline} />
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <BarList title="Материалы по разделам" items={categoryItems} />
+        <BarList title="Материалы по статусам" items={statusItems} />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <section className="card space-y-3 p-5">
+          <h2 className="text-base font-bold text-neutral-900">Самые читаемые</h2>
+          {stats.topArticles.length === 0 ? (
+            <p className="text-sm text-neutral-500">Пока нет опубликованных материалов.</p>
+          ) : (
+            <ol className="space-y-2">
+              {stats.topArticles.map((article, index) => (
+                <li key={article.id} className="flex items-baseline gap-3 text-sm">
+                  <span className="w-4 shrink-0 font-bold text-neutral-400">{index + 1}</span>
+                  <Link to={`/article/${article.id}`} className="min-w-0 flex-1 truncate hover:text-brand">
+                    {article.title}
+                  </Link>
+                  <span className="shrink-0 tabular-nums text-neutral-500">{article.views}</span>
+                </li>
+              ))}
+            </ol>
+          )}
+        </section>
+
+        <section className="card space-y-3 p-5">
+          <div className="flex items-baseline justify-between">
+            <h2 className="text-base font-bold text-neutral-900">Ждут проверки</h2>
+            <Link to="/admin/pending" className="text-xs font-semibold text-brand hover:underline">
+              Ко всей очереди
+            </Link>
+          </div>
+
+          {stats.latestPending.length === 0 ? (
+            <p className="text-sm text-neutral-500">Очередь модерации пуста.</p>
+          ) : (
+            <ul className="space-y-2">
+              {stats.latestPending.map((article) => (
+                <li key={article.id} className="text-sm">
+                  <p className="truncate font-semibold text-neutral-800">{article.title}</p>
+                  <p className="text-xs text-neutral-500">
+                    {article.author?.username || 'Аноним'} · {formatRelativeDate(article.created_at)}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
+
+      <section className="card space-y-3 p-5">
+        <div className="flex items-baseline justify-between">
+          <h2 className="text-base font-bold text-neutral-900">Последние комментарии</h2>
+          <Link to="/admin/comments" className="text-xs font-semibold text-brand hover:underline">
+            Все комментарии
+          </Link>
         </div>
-      ) : null}
+
+        {stats.latestComments.length === 0 ? (
+          <p className="text-sm text-neutral-500">Комментариев пока нет.</p>
+        ) : (
+          <ul className="divide-y divide-neutral-100">
+            {stats.latestComments.map((comment) => (
+              <li key={comment.id} className="py-2 text-sm">
+                <p className="text-neutral-700">{excerpt(comment.text, 120)}</p>
+                <p className="text-xs text-neutral-500">
+                  {comment.author?.username || 'Аноним'} · {formatRelativeDate(comment.created_at)}
+                  {comment.article && (
+                    <>
+                      {' · '}
+                      <Link to={`/article/${comment.article.id}`} className="hover:text-brand">
+                        {excerpt(comment.article.title, 40)}
+                      </Link>
+                    </>
+                  )}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
   );
 }

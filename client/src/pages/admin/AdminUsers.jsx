@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Ban, ShieldCheck, ShieldOff, Undo2, Users } from 'lucide-react';
+import { Ban, ShieldCheck, ShieldOff, Trash2, Undo2, Users } from 'lucide-react';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import Loader from '../../components/Loader';
@@ -58,6 +58,28 @@ export default function AdminUsers() {
     try {
       const { data } = await api.patch(`/admin/users/${user.id}/role`, { role });
       applyUpdate(data.item);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const removeUser = async (user) => {
+    // eslint-disable-next-line no-alert
+    if (
+      !window.confirm(
+        `Удалить пользователя ${user.username}? Вместе с ним удалятся его комментарии и закладки.`
+      )
+    ) {
+      return;
+    }
+
+    setBusyId(user.id);
+    setError('');
+    try {
+      await api.delete(`/admin/users/${user.id}`);
+      setItems((prev) => prev.filter((item) => item.id !== user.id));
     } catch (err) {
       setError(err.message);
     } finally {
@@ -170,6 +192,17 @@ export default function AdminUsers() {
                             <Ban className="h-4 w-4" aria-hidden="true" />
                           )}
                           {user.is_banned ? 'Разблокировать' : 'Заблокировать'}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => removeUser(user)}
+                          disabled={isSelf || busyId === user.id}
+                          className="rounded p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600 disabled:hover:bg-transparent disabled:hover:text-neutral-400"
+                          aria-label={`Удалить ${user.username}`}
+                          title="Удалить пользователя"
+                        >
+                          <Trash2 className="h-4 w-4" aria-hidden="true" />
                         </button>
                       </div>
                     </td>

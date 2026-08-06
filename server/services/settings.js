@@ -8,6 +8,8 @@ const DEFAULTS = {
   comments_enabled: true,
   auto_approve_articles: false,
   site_tagline: 'Новости, анекдоты и погода — каждую секунду',
+  site_title: 'НОВОСТИ СЕКУНДЫ',
+  maintenance_mode: false,
 };
 
 const EDITABLE = Object.keys(DEFAULTS);
@@ -17,6 +19,7 @@ const BOOLEAN_KEYS = [
   'registration_open',
   'comments_enabled',
   'auto_approve_articles',
+  'maintenance_mode',
 ];
 
 // Настройки читаются почти в каждом запросе, поэтому держим короткий кэш:

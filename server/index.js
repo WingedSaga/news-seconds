@@ -35,10 +35,16 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', service: 'novosti-sekundy-api' });
 });
 
+const { optionalAuth } = require('./middleware/authMiddleware');
+const { maintenanceGuard } = require('./middleware/maintenance');
+
+// Настройки и авторизация доступны всегда: без них не выйти из режима
+// обслуживания и не попасть в админ-панель.
 app.use('/api/settings', require('./routes/settings'));
 app.use('/api/auth', require('./routes/auth'));
-app.use('/api/articles', require('./routes/articles'));
-app.use('/api/comments', require('./routes/comments'));
+
+app.use('/api/articles', optionalAuth, maintenanceGuard, require('./routes/articles'));
+app.use('/api/comments', optionalAuth, maintenanceGuard, require('./routes/comments'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/upload', require('./routes/upload'));
 
