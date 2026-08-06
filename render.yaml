@@ -35,6 +35,8 @@ services:
       # Почта для подтверждения адреса. Приоритет у Resend: он работает
       # поверх HTTPS, тогда как исходящий SMTP часто отфильтрован.
       # Если не задано ничего, проверка почты просто выключена.
+      - key: BREVO_API_KEY
+        sync: false
       - key: RESEND_API_KEY
         sync: false
       - key: SMTP_USER

@@ -1,5 +1,8 @@
 const nodemailer = require('nodemailer');
 
+const BREVO_API_KEY = process.env.BREVO_API_KEY;
+const BREVO_API_BASE = (process.env.BREVO_API_BASE || 'https://api.brevo.com/v3').replace(/\/$/, '');
+
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 // Базовый адрес вынесен в переменную: он подменяется в тестах и при
 // использовании собственного прокси до API.
@@ -11,16 +14,26 @@ const SMTP_USER = process.env.SMTP_USER;
 const SMTP_PASS = process.env.SMTP_PASS;
 const CLIENT_URL = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/$/, '');
 
-// Resend ходит по обычному HTTPS: хостинги часто фильтруют исходящий SMTP,
-// и тогда письма молча не уходят. Поэтому он в приоритете, SMTP — запасной.
-const provider = RESEND_API_KEY ? 'resend' : SMTP_USER && SMTP_PASS ? 'smtp' : 'none';
+// Оба API работают поверх обычного HTTPS: хостинги часто фильтруют исходящий
+// SMTP, и тогда письма молча не уходят, поэтому SMTP — запасной вариант.
+// Brevo идёт первым: он шлёт на любые адреса, подтвердив одного отправителя,
+// тогда как Resend без своего домена ограничен адресом владельца аккаунта.
+const provider = BREVO_API_KEY
+  ? 'brevo'
+  : RESEND_API_KEY
+    ? 'resend'
+    : SMTP_USER && SMTP_PASS
+      ? 'smtp'
+      : 'none';
 const isEnabled = provider !== 'none';
 
 // Без своего домена Resend разрешает отправку только с этого адреса.
+// У Brevo своего служебного адреса нет: отправитель задаётся через MAIL_FROM
+// и должен быть подтверждён в панели (Senders).
 const DEFAULT_FROM =
   provider === 'resend'
     ? 'НОВОСТИ СЕКУНДЫ <onboarding@resend.dev>'
-    : `НОВОСТИ СЕКУНДЫ <${SMTP_USER}>`;
+    : `НОВОСТИ СЕКУНДЫ <${SMTP_USER || 'no-reply@example.com'}>`;
 
 // Публичные почтовые домены нельзя подтвердить в Resend: отправка с такого
 // адреса отклоняется всегда. Свой домен в этот список не попадёт, поэтому
@@ -48,8 +61,22 @@ function senderDomain(value) {
   return match ? match[1].toLowerCase() : '';
 }
 
+function parseFrom(value) {
+  const match = String(value).match(/^\s*(.*?)\s*<([^>]+)>\s*$/);
+  if (match) return { name: match[1] || 'НОВОСТИ СЕКУНДЫ', email: match[2] };
+  return { name: 'НОВОСТИ СЕКУНДЫ', email: String(value).trim() };
+}
+
 function resolveFrom() {
   const configured = process.env.MAIL_FROM;
+
+  if (provider === 'brevo' && !configured) {
+    console.warn(
+      '[mailer] для Brevo нужен MAIL_FROM с адресом, подтверждённым в разделе Senders — ' +
+        'без него письма будут отклоняться'
+    );
+  }
+
   if (!configured) return DEFAULT_FROM;
 
   if (provider === 'resend' && PUBLIC_MAILBOX_DOMAINS.has(senderDomain(configured))) {
@@ -142,6 +169,36 @@ function verificationTemplate(username, url) {
   return { text, html };
 }
 
+// Отправка через HTTP API Brevo.
+async function sendViaBrevo({ to, subject, text, html }) {
+  const sender = parseFrom(MAIL_FROM);
+
+  const response = await fetch(`${BREVO_API_BASE}/smtp/email`, {
+    method: 'POST',
+    headers: {
+      'api-key': BREVO_API_KEY,
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify({
+      sender,
+      to: [{ email: to }],
+      subject,
+      textContent: text,
+      htmlContent: html,
+    }),
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+  });
+
+  const payload = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(payload.message || `HTTP ${response.status}`);
+  }
+
+  return payload.messageId || 'ok';
+}
+
 // Отправка через HTTP API Resend.
 async function sendViaResend({ to, subject, text, html }) {
   const response = await fetch(`${RESEND_API_BASE}/emails`, {
@@ -168,6 +225,32 @@ async function sendViaResend({ to, subject, text, html }) {
 // видна сразу в логах, а не всплывать как молча непришедшие письма.
 async function verifyConnection() {
   if (provider === 'none') return { ok: false, reason: 'disabled' };
+
+  if (provider === 'brevo') {
+    try {
+      const response = await fetch(`${BREVO_API_BASE}/account`, {
+        headers: { 'api-key': BREVO_API_KEY, Accept: 'application/json' },
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      });
+
+      if (response.status === 401) {
+        console.error('[mailer] Brevo отклонил ключ: проверьте BREVO_API_KEY');
+        return { ok: false, reason: 'unauthorized' };
+      }
+
+      if (!response.ok) {
+        const body = (await response.text().catch(() => '')).slice(0, 200);
+        console.error(`[mailer] Brevo ответил ${response.status}: ${body}`);
+        return { ok: false, reason: `http_${response.status}` };
+      }
+
+      console.log(`[mailer] Brevo принял ключ, отправитель: ${MAIL_FROM}`);
+      return { ok: true };
+    } catch (err) {
+      console.error('[mailer] не удалось связаться с Brevo:', err.message);
+      return { ok: false, reason: err.message };
+    }
+  }
 
   if (provider === 'resend') {
     try {
@@ -223,7 +306,10 @@ async function sendVerificationEmail({ to, username, token }) {
   const subject = 'Подтверждение почты — НОВОСТИ СЕКУНДЫ';
 
   try {
-    if (provider === 'resend') {
+    if (provider === 'brevo') {
+      const id = await sendViaBrevo({ to, subject, text, html });
+      console.log(`[mailer] Brevo принял письмо для ${to}, id: ${id}`);
+    } else if (provider === 'resend') {
       const id = await sendViaResend({ to, subject, text, html });
       console.log(`[mailer] Resend принял письмо для ${to}, id: ${id}`);
     } else {
