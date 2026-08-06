@@ -1,15 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Bookmark, FilePlus2, LayoutDashboard, LifeBuoy, LogOut, Menu, User, X } from 'lucide-react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import Avatar from './Avatar';
-
-const SECTIONS = [
-  { to: '/', label: 'Новости' },
-  { to: '/jokes', label: 'Анекдоты' },
-  { to: '/weather', label: 'Погода' },
-];
 
 function todayLine() {
   return new Date().toLocaleDateString('ru-RU', {
@@ -20,8 +14,8 @@ function todayLine() {
   });
 }
 
-// Шапка сделана как газетный колонтитул: дата слева, название по центру,
-// служебные ссылки справа. Разделы вынесены на полосу и в подвал.
+// Шапка: дата слева, название по центру, служебные ссылки справа.
+// Разделов нет — сайт показывает единую ленту.
 export default function Navbar() {
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -131,42 +125,11 @@ export default function Navbar() {
           )}
         </div>
 
-        <nav
-          className="hidden items-center justify-center gap-6 border-t border-neutral-300 py-2 sm:flex"
-          aria-label="Разделы"
-        >
-          {SECTIONS.map((section) => (
-            <NavLink
-              key={section.to}
-              to={section.to}
-              end={section.to === '/'}
-              className={({ isActive }) =>
-                `text-[11px] font-bold uppercase tracking-[0.22em] transition-colors ${
-                  isActive
-                    ? 'text-brand underline decoration-brand decoration-2 underline-offset-[6px]'
-                    : 'text-neutral-600 hover:text-brand'
-                }`
-              }
-            >
-              {section.label}
-            </NavLink>
-          ))}
-        </nav>
       </div>
 
       {menuOpen && (
         <nav className="animate-fade-in border-t border-neutral-200 bg-white sm:hidden" aria-label="Меню">
           <div className="mx-auto flex max-w-7xl flex-col px-4 py-2">
-            {SECTIONS.map((section) => (
-              <Link
-                key={section.to}
-                to={section.to}
-                className="border-b border-neutral-100 py-3 font-serif text-sm font-bold uppercase tracking-widest text-neutral-700"
-              >
-                {section.label}
-              </Link>
-            ))}
-
             {isAuthenticated ? (
               <>
                 <Link to="/submit" className="flex items-center gap-2 py-3 text-sm font-semibold text-neutral-600">

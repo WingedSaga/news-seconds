@@ -1,184 +1,122 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowRight, Clock } from 'lucide-react';
-import api from '../api/axios';
+import { Loader2, Plus, Search, X } from 'lucide-react';
 import useArticleFeed from '../hooks/useArticleFeed';
-import FeedSection from '../components/FeedSection';
-import NewsCard from '../components/NewsCard';
-import SkeletonCard from '../components/SkeletonCard';
-import { excerpt, formatRelativeDate } from '../utils/format';
+import FeedItem from '../components/FeedItem';
+import ErrorMessage from '../components/ErrorMessage';
+import EmptyState from '../components/EmptyState';
 
-// Врезка «Коротко»: узкая колонка заголовков сбоку от передовицы,
-// как боковая колонка новостей на первой полосе.
-function BriefColumn({ items, loading }) {
+// Заглушка на время загрузки, повторяющая ритм самой ленты.
+function FeedSkeleton() {
   return (
-    <aside className="lg:border-l lg:border-neutral-300 lg:pl-6">
-      <h2 className="mb-3 border-b-2 border-ink pb-2 font-serif text-sm font-black uppercase tracking-[0.18em] text-ink">
-        Коротко
-      </h2>
+    <div className="space-y-10" aria-hidden="true">
+      <div className="animate-pulse space-y-4">
+        <div className="h-64 w-full rounded-2xl bg-neutral-200 sm:h-96" />
+        <div className="h-9 w-3/4 rounded bg-neutral-200" />
+        <div className="h-4 w-full rounded bg-neutral-100" />
+        <div className="h-4 w-5/6 rounded bg-neutral-100" />
+      </div>
 
-      {loading ? (
-        <p className="py-3 text-sm text-neutral-400">Загрузка...</p>
-      ) : items.length === 0 ? (
-        <p className="py-3 text-sm text-neutral-500">Свежих сообщений пока нет.</p>
-      ) : (
-        <ul className="divide-y divide-neutral-200">
-          {items.map((item) => (
-            <li key={item.id} className="py-2.5">
-              <Link to={`/article/${item.id}`} className="group block">
-                <h3 className="font-serif text-[15px] font-bold leading-snug text-ink group-hover:text-brand">
-                  {item.title}
-                </h3>
-                <span className="mt-0.5 flex items-center gap-1 text-[11px] text-neutral-400">
-                  <Clock className="h-3 w-3" aria-hidden="true" />
-                  {formatRelativeDate(item.created_at)}
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-    </aside>
-  );
-}
-
-// Полоса раздела внизу первой страницы.
-function SectionColumn({ title, to, items, loading }) {
-  return (
-    <section className="space-y-3">
-      <h2 className="section-title text-base">
-        {title}
-        <Link
-          to={to}
-          className="flex items-center gap-1 font-sans text-[11px] font-semibold normal-case tracking-normal text-brand hover:text-brand-hover"
-        >
-          Все материалы
-          <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-        </Link>
-      </h2>
-
-      {loading ? (
-        <p className="py-3 text-sm text-neutral-400">Загрузка...</p>
-      ) : items.length === 0 ? (
-        <p className="py-3 text-sm text-neutral-500">В этом разделе пока пусто.</p>
-      ) : (
-        <ul className="divide-y divide-neutral-200">
-          {items.map((item) => (
-            <li key={item.id} className="py-3">
-              <Link to={`/article/${item.id}`} className="group block">
-                <h3 className="font-serif text-lg font-bold leading-tight text-ink group-hover:text-brand">
-                  {item.title}
-                </h3>
-                <p className="mt-1 font-serif text-sm leading-snug text-neutral-600">
-                  {excerpt(item.content, 110)}
-                </p>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
+      {[0, 1, 2].map((index) => (
+        <div key={index} className="flex animate-pulse gap-5">
+          <div className="flex-1 space-y-3">
+            <div className="h-6 w-4/5 rounded bg-neutral-200" />
+            <div className="h-4 w-full rounded bg-neutral-100" />
+            <div className="h-4 w-2/3 rounded bg-neutral-100" />
+          </div>
+          <div className="h-36 w-56 shrink-0 rounded-xl bg-neutral-200" />
+        </div>
+      ))}
+    </div>
   );
 }
 
 export default function Home() {
-  const feed = useArticleFeed('news');
+  // Категория не передаётся: лента показывает всё, что одобрила редакция.
+  const { items, search, setSearch, hasMore, loading, loadingMore, error, loadMore, retry } =
+    useArticleFeed();
 
-  const [featured, setFeatured] = useState(null);
-  const [brief, setBrief] = useState([]);
-  const [featuredLoading, setFeaturedLoading] = useState(true);
-  const [jokes, setJokes] = useState([]);
-  const [weather, setWeather] = useState([]);
-  const [sectionsLoading, setSectionsLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    Promise.all([
-      api.get('/articles/featured'),
-      api.get('/articles', { params: { category: 'news', limit: 6 } }),
-    ])
-      .then(([featuredRes, latestRes]) => {
-        if (cancelled) return;
-        setFeatured(featuredRes.data.item);
-        // Передовицу во врезке не повторяем.
-        setBrief(
-          latestRes.data.items
-            .filter((item) => item.id !== featuredRes.data.item?.id)
-            .slice(0, 5)
-        );
-      })
-      .catch(() => {
-        // Первая полоса необязательна: ошибку показывает основная лента.
-      })
-      .finally(() => {
-        if (!cancelled) setFeaturedLoading(false);
-      });
-
-    Promise.all([
-      api.get('/articles', { params: { category: 'joke', limit: 3 } }),
-      api.get('/articles', { params: { category: 'weather', limit: 3 } }),
-    ])
-      .then(([jokesRes, weatherRes]) => {
-        if (cancelled) return;
-        setJokes(jokesRes.data.items);
-        setWeather(weatherRes.data.items);
-      })
-      .catch(() => {
-        // Нижние полосы второстепенны.
-      })
-      .finally(() => {
-        if (!cancelled) setSectionsLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const [lead, ...rest] = items;
 
   return (
-    <div className="space-y-10">
-      <section aria-labelledby="lead-heading" className="space-y-4">
-        <h2 id="lead-heading" className="section-title">
-          Передовица
-        </h2>
-
-        <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
-          <div>
-            {featuredLoading ? (
-              <SkeletonCard />
-            ) : featured ? (
-              <NewsCard article={featured} featured />
-            ) : (
-              <p className="border-y border-neutral-300 py-10 text-center font-serif text-neutral-500">
-                Главный материал появится, как только редакция одобрит первую новость.
-              </p>
-            )}
-          </div>
-
-          <BriefColumn items={brief} loading={featuredLoading} />
-        </div>
-      </section>
-
-      <section aria-labelledby="feed-heading" className="space-y-4">
-        <h2 id="feed-heading" className="section-title">
-          Хроника
-        </h2>
-
-        <FeedSection
-          feed={feed}
-          searchPlaceholder="Поиск по новостям..."
-          emptyTitle="Новостей пока нет"
-          emptyDescription="Попробуйте изменить поисковый запрос или предложите свою новость."
+    <div className="mx-auto max-w-3xl">
+      <div className="relative mb-10">
+        <Search
+          className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400"
+          aria-hidden="true"
         />
-      </section>
-
-      <div className="grid gap-8 border-t-2 border-ink pt-8 lg:grid-cols-2">
-        <SectionColumn title="Анекдоты" to="/jokes" items={jokes} loading={sectionsLoading} />
-        <div className="lg:border-l lg:border-neutral-300 lg:pl-8">
-          <SectionColumn title="Погода" to="/weather" items={weather} loading={sectionsLoading} />
-        </div>
+        <input
+          type="search"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Поиск по материалам"
+          aria-label="Поиск"
+          className="w-full rounded-full border border-neutral-300 bg-white py-3 pl-11 pr-11 text-[15px]
+            placeholder:text-neutral-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+        />
+        {search && (
+          <button
+            type="button"
+            onClick={() => setSearch('')}
+            aria-label="Очистить поиск"
+            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600"
+          >
+            <X className="h-4 w-4" aria-hidden="true" />
+          </button>
+        )}
       </div>
+
+      <ErrorMessage message={error} onRetry={retry} />
+
+      {loading ? (
+        <FeedSkeleton />
+      ) : items.length === 0 ? (
+        !error && (
+          <EmptyState
+            title={search ? 'Ничего не найдено' : 'Пока пусто'}
+            description={
+              search
+                ? 'Попробуйте другой запрос.'
+                : 'Первые материалы появятся, как только редакция их одобрит.'
+            }
+          />
+        )
+      ) : (
+        <div className="space-y-10">
+          <FeedItem article={lead} variant="hero" />
+
+          {rest.length > 0 && (
+            <div className="space-y-10 border-t border-neutral-200 pt-10">
+              {rest.map((article) => (
+                <FeedItem key={article.id} article={article} />
+              ))}
+            </div>
+          )}
+
+          {loadingMore && (
+            <p className="flex items-center justify-center gap-2 py-4 text-sm text-neutral-500">
+              <Loader2 className="h-4 w-4 animate-spin text-brand" aria-hidden="true" />
+              Загружаем ещё
+            </p>
+          )}
+
+          {hasMore && !loadingMore && (
+            <div className="flex justify-center pt-2">
+              <button
+                type="button"
+                onClick={loadMore}
+                className="inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white px-6 py-2.5
+                  text-sm font-semibold text-neutral-700 transition-colors hover:border-brand hover:text-brand"
+              >
+                <Plus className="h-4 w-4" aria-hidden="true" />
+                Показать ещё
+              </button>
+            </div>
+          )}
+
+          {!hasMore && (
+            <p className="pt-4 text-center text-sm text-neutral-400">Это все материалы</p>
+          )}
+        </div>
+      )}
     </div>
   );
 }

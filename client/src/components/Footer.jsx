@@ -12,13 +12,7 @@ export default function Footer() {
 
         <nav className="flex flex-wrap gap-4 text-sm text-neutral-500">
           <Link to="/" className="hover:text-brand">
-            Новости
-          </Link>
-          <Link to="/jokes" className="hover:text-brand">
-            Анекдоты
-          </Link>
-          <Link to="/weather" className="hover:text-brand">
-            Погода
+            Лента
           </Link>
           <Link to="/submit" className="hover:text-brand">
             Предложить новость
