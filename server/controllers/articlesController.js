@@ -1,8 +1,6 @@
 const { supabase } = require('../db/supabase');
 const settings = require('../services/settings');
-
-const AUTHOR_SELECT = 'author:users (id, username, avatar_url)';
-const LIST_SELECT = `id, title, content, category, image_url, image_urls, media_url, media_type, author_id, status, views, created_at, ${AUTHOR_SELECT}`;
+const { articleSelect, pickWritableColumns } = require('../db/schemaState');
 
 // В значениях фильтров PostgREST спецсимволы ломают выражение `or`, убираем их.
 function sanitizeSearch(value) {
@@ -26,7 +24,7 @@ async function listArticles(req, res, next) {
 
     let query = supabase
       .from('articles')
-      .select(LIST_SELECT, { count: 'exact' })
+      .select(articleSelect(), { count: 'exact' })
       .eq('status', 'approved')
       .order('created_at', { ascending: false })
       .range(from, to);
@@ -62,7 +60,7 @@ async function featuredArticle(_req, res, next) {
   try {
     const { data, error } = await supabase
       .from('articles')
-      .select(LIST_SELECT)
+      .select(articleSelect())
       .eq('status', 'approved')
       .eq('category', 'news')
       .order('created_at', { ascending: false })
@@ -98,7 +96,7 @@ async function myArticles(req, res, next) {
   try {
     const { data, error } = await supabase
       .from('articles')
-      .select(LIST_SELECT)
+      .select(articleSelect())
       .eq('author_id', req.user.id)
       .order('created_at', { ascending: false });
 
@@ -114,7 +112,7 @@ async function getArticle(req, res, next) {
   try {
     const { data: article, error } = await supabase
       .from('articles')
-      .select(LIST_SELECT)
+      .select(articleSelect())
       .eq('id', req.params.id)
       .maybeSingle();
 
@@ -170,18 +168,20 @@ async function createArticle(req, res, next) {
 
     const { data, error } = await supabase
       .from('articles')
-      .insert({
-        title: String(title).trim(),
-        content: String(content).trim(),
-        category,
-        image_url: cover,
-        image_urls: gallery.length > 0 ? gallery : cover ? [cover] : [],
-        media_url: media_url ? String(media_url).trim() : null,
-        media_type: media_url ? media_type : null,
-        author_id: req.user.id,
-        status,
-      })
-      .select(LIST_SELECT)
+      .insert(
+        pickWritableColumns({
+          title: String(title).trim(),
+          content: String(content).trim(),
+          category,
+          image_url: cover,
+          image_urls: gallery.length > 0 ? gallery : cover ? [cover] : [],
+          media_url: media_url ? String(media_url).trim() : null,
+          media_type: media_url ? media_type : null,
+          author_id: req.user.id,
+          status,
+        })
+      )
+      .select(articleSelect())
       .single();
 
     if (error) throw error;
@@ -196,7 +196,7 @@ async function listBookmarks(req, res, next) {
   try {
     const { data, error } = await supabase
       .from('bookmarks')
-      .select(`id, created_at, article:articles (${LIST_SELECT})`)
+      .select(`id, created_at, article:articles (${articleSelect()})`)
       .eq('user_id', req.user.id)
       .order('created_at', { ascending: false });
 
@@ -260,6 +260,5 @@ module.exports = {
   createArticle,
   listBookmarks,
   toggleBookmark,
-  LIST_SELECT,
   MAX_IMAGES,
 };

@@ -1,5 +1,5 @@
 const { supabase } = require('../db/supabase');
-const { LIST_SELECT } = require('./articlesController');
+const { articleSelect, pickWritableColumns } = require('../db/schemaState');
 const { USER_FIELDS } = require('../middleware/authMiddleware');
 const settingsService = require('../services/settings');
 const mailer = require('../services/mailer');
@@ -210,7 +210,7 @@ async function listArticles(req, res, next) {
 
     let query = supabase
       .from('articles')
-      .select(LIST_SELECT)
+      .select(articleSelect())
       .order('created_at', { ascending: false })
       .limit(200);
 
@@ -239,7 +239,7 @@ async function updateArticleStatus(req, res, next) {
       .from('articles')
       .update({ status })
       .eq('id', req.params.id)
-      .select(LIST_SELECT)
+      .select(articleSelect())
       .maybeSingle();
 
     if (error) throw error;
@@ -275,9 +275,9 @@ async function updateArticle(req, res, next) {
 
     const { data, error } = await supabase
       .from('articles')
-      .update(patch)
+      .update(pickWritableColumns(patch))
       .eq('id', req.params.id)
-      .select(LIST_SELECT)
+      .select(articleSelect())
       .maybeSingle();
 
     if (error) throw error;

@@ -69,6 +69,8 @@ app.listen(PORT, () => {
   if (isEnabled) verifyConnection();
 
   // Проверка схемы: отставшая база — самая частая причина ошибок 500.
+  // Определяем доступные колонки, чтобы лента работала даже без миграций.
+  require('./db/schemaState').detectArticleColumns();
   require('./db/checkSchema').checkSchema();
 });
 

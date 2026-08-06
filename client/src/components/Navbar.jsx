@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Bookmark, FilePlus2, LayoutDashboard, LifeBuoy, LogOut, Menu, User, X } from 'lucide-react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
@@ -61,7 +61,7 @@ export default function Navbar() {
   };
 
   return (
-    <header className="border-b-4 border-double border-neutral-900 bg-white">
+    <header className="border-b-[3px] border-double border-ink bg-white">
       <div className="mx-auto max-w-7xl px-4">
         <div className="flex items-center justify-between gap-4 border-b border-neutral-200 py-2 text-[11px] uppercase tracking-widest text-neutral-500">
           <span className="hidden sm:inline">{todayLine()}</span>
@@ -114,22 +114,44 @@ export default function Navbar() {
           </div>
         </div>
 
-        <div className="py-5 text-center sm:py-7">
+        <div className="py-4 text-center sm:py-6">
           <Link to="/" className="inline-block">
-            <h1 className="font-serif text-4xl font-black uppercase leading-none tracking-[0.12em] text-neutral-900 sm:text-6xl">
+            <h1 className="font-serif text-3xl font-black uppercase leading-none tracking-[0.08em] text-ink sm:text-5xl">
               {titleTop}
             </h1>
             {titleBottom && (
-              <span className="mt-1 block font-serif text-lg uppercase tracking-[0.5em] text-brand sm:text-2xl">
+              <span className="mt-1 block font-serif text-base uppercase tracking-[0.35em] text-brand sm:text-xl">
                 {titleBottom}
               </span>
             )}
           </Link>
 
           {tagline && (
-            <p className="mt-3 font-serif text-xs italic text-neutral-500 sm:text-sm">{tagline}</p>
+            <p className="mt-2 font-serif text-xs italic text-neutral-500 sm:text-sm">{tagline}</p>
           )}
         </div>
+
+        <nav
+          className="hidden items-center justify-center gap-6 border-t border-neutral-300 py-2 sm:flex"
+          aria-label="Разделы"
+        >
+          {SECTIONS.map((section) => (
+            <NavLink
+              key={section.to}
+              to={section.to}
+              end={section.to === '/'}
+              className={({ isActive }) =>
+                `text-[11px] font-bold uppercase tracking-[0.22em] transition-colors ${
+                  isActive
+                    ? 'text-brand underline decoration-brand decoration-2 underline-offset-[6px]'
+                    : 'text-neutral-600 hover:text-brand'
+                }`
+              }
+            >
+              {section.label}
+            </NavLink>
+          ))}
+        </nav>
       </div>
 
       {menuOpen && (
