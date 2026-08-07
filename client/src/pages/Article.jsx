@@ -184,8 +184,10 @@ export default function Article() {
             )}
           </div>
 
-          <div className="flex items-start justify-between gap-4">
-            <h1 className="font-serif text-4xl font-black leading-[1.1] text-ink sm:text-5xl">{article.title}</h1>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <h1 className="min-w-0 flex-1 font-serif text-[1.75rem] font-black leading-[1.15] text-ink sm:text-5xl sm:leading-[1.1]">
+              {article.title}
+            </h1>
 
             {/* Правка материала живёт в панели: там же лежат картинки и статус. */}
             {isAdmin && (

@@ -118,7 +118,91 @@ export default function AdminUsers() {
       ) : items.length === 0 ? (
         !error && <EmptyState title="Пользователи не найдены" icon={Users} />
       ) : (
-        <div className="card overflow-x-auto">
+        <>
+        {/* На телефоне действия в таблице оказываются за краем экрана,
+            поэтому там список превращается в карточки. */}
+        <ul className="space-y-3 sm:hidden">
+          {items.map((user) => {
+            const isSelf = user.id === currentUser?.id;
+
+            return (
+              <li key={user.id} className="card space-y-3 p-4">
+                <div className="flex items-center gap-2">
+                  <Avatar user={user} size="md" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-semibold text-neutral-800">
+                      {user.username}
+                      {isSelf && <span className="ml-1 text-xs font-normal text-neutral-400">(вы)</span>}
+                    </p>
+                    <p className="truncate text-xs text-neutral-500">{user.email}</p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  <span
+                    className={`rounded-full px-2.5 py-1 font-semibold ${
+                      user.role === 'admin' ? 'bg-brand text-white' : 'bg-neutral-100 text-neutral-600'
+                    }`}
+                  >
+                    {user.role === 'admin' ? 'Администратор' : 'Пользователь'}
+                  </span>
+                  <span
+                    className={`rounded-full px-2.5 py-1 font-semibold ${
+                      user.is_banned ? 'bg-red-100 text-red-700' : 'bg-brand-accent text-brand-dark'
+                    }`}
+                  >
+                    {user.is_banned ? 'Заблокирован' : 'Активен'}
+                  </span>
+                  <span className="text-neutral-400">{formatDateTime(user.created_at)}</span>
+                </div>
+
+                {!isSelf && (
+                  <div className="flex flex-wrap gap-2 border-t border-neutral-100 pt-3">
+                    <button
+                      type="button"
+                      onClick={() => changeRole(user)}
+                      disabled={busyId === user.id}
+                      className="btn-ghost text-xs"
+                    >
+                      {user.role === 'admin' ? (
+                        <ShieldOff className="h-4 w-4" aria-hidden="true" />
+                      ) : (
+                        <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+                      )}
+                      {user.role === 'admin' ? 'Снять роль' : 'Сделать админом'}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => changeBan(user)}
+                      disabled={busyId === user.id}
+                      className={`${user.is_banned ? 'btn-outline' : 'btn-danger'} text-xs`}
+                    >
+                      {user.is_banned ? (
+                        <Undo2 className="h-4 w-4" aria-hidden="true" />
+                      ) : (
+                        <Ban className="h-4 w-4" aria-hidden="true" />
+                      )}
+                      {user.is_banned ? 'Разблокировать' : 'Заблокировать'}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => removeUser(user)}
+                      disabled={busyId === user.id}
+                      className="btn-ghost text-xs text-red-600"
+                      aria-label="Удалить пользователя"
+                    >
+                      <Trash2 className="h-4 w-4" aria-hidden="true" />
+                    </button>
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+
+        <div className="card hidden overflow-x-auto sm:block">
           <table className="w-full min-w-[720px] text-left text-sm">
             <thead className="border-b border-neutral-200 bg-neutral-50 text-xs uppercase tracking-wide text-neutral-500">
               <tr>
@@ -212,6 +296,7 @@ export default function AdminUsers() {
             </tbody>
           </table>
         </div>
+        </>
       )}
     </div>
   );

@@ -279,7 +279,57 @@ export default function AdminArticles() {
       ) : items.length === 0 ? (
         !error && <EmptyState title="Статей не найдено" description="Измените фильтр или поисковый запрос." />
       ) : (
-        <div className="card overflow-x-auto">
+        <>
+        {/* На телефоне таблица уезжает вбок вместе с кнопками действий,
+            поэтому там материалы показываются карточками. */}
+        <ul className="space-y-3 sm:hidden">
+          {items.map((article) => (
+            <li key={article.id} className="card space-y-3 p-4">
+              <div className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  aria-label={`Выбрать «${article.title}»`}
+                  className="mt-1 h-4 w-4 shrink-0 accent-[#2E7D32]"
+                  checked={selected.includes(article.id)}
+                  onChange={() => toggleOne(article.id)}
+                />
+                <p className="min-w-0 flex-1 font-semibold text-neutral-800">{article.title}</p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-neutral-500">
+                <span className={`rounded-full px-2.5 py-1 font-semibold ${STATUS_CLASSES[article.status]}`}>
+                  {STATUS_LABELS[article.status]}
+                </span>
+                <span>{CATEGORY_LABELS[article.category]}</span>
+                <span className="flex items-center gap-1">
+                  <Eye className="h-3.5 w-3.5" aria-hidden="true" />
+                  {article.views}
+                </span>
+                <span>{formatRelativeDate(article.created_at)}</span>
+              </div>
+
+              <div className="flex flex-wrap gap-2 border-t border-neutral-100 pt-3">
+                <button type="button" onClick={() => startEdit(article)} className="btn-outline flex-1 text-xs">
+                  <Pencil className="h-4 w-4" aria-hidden="true" />
+                  Изменить
+                </button>
+                <Link to={`/article/${article.id}`} className="btn-ghost text-xs" aria-label="Открыть статью">
+                  <Eye className="h-4 w-4" aria-hidden="true" />
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => remove(article)}
+                  className="btn-ghost text-xs text-red-600"
+                  aria-label="Удалить статью"
+                >
+                  <Trash2 className="h-4 w-4" aria-hidden="true" />
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+
+        <div className="card hidden overflow-x-auto sm:block">
           <table className="w-full min-w-[720px] text-left text-sm">
             <thead className="border-b border-neutral-200 bg-neutral-50 text-xs uppercase tracking-wide text-neutral-500">
               <tr>
@@ -355,6 +405,7 @@ export default function AdminArticles() {
             </tbody>
           </table>
         </div>
+        </>
       )}
 
       {editing && (

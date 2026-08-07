@@ -7,6 +7,7 @@ import {
   LifeBuoy,
   LogOut,
   Menu,
+  Newspaper,
   User,
   X,
 } from 'lucide-react';
@@ -59,7 +60,7 @@ export default function Navbar() {
   };
 
   return (
-    <header className="border-b-[3px] border-double border-ink bg-white">
+    <header className="sticky top-0 z-40 border-b-[3px] border-double border-ink bg-white">
       <div className="mx-auto max-w-7xl px-4">
         {/* Разрядка живёт на самих служебных надписях: на названии издания
             она бы перебила его собственную плотную посадку. */}
@@ -170,14 +171,25 @@ export default function Navbar() {
                 </button>
               </>
             ) : (
-              <div className="flex gap-2 py-3">
-                <Link to="/login" className="btn-outline flex-1">
-                  Вход
+              <>
+                {/* Гостю тоже нужны разделы сайта, а не только кнопки входа. */}
+                <Link to="/" className="flex items-center gap-2 py-3 text-sm font-semibold text-neutral-600">
+                  <Newspaper className="h-4 w-4" aria-hidden="true" />
+                  Лента
                 </Link>
-                <Link to="/register" className="btn-primary flex-1">
-                  Регистрация
+                <Link to="/support" className="flex items-center gap-2 py-3 text-sm font-semibold text-neutral-600">
+                  <LifeBuoy className="h-4 w-4" aria-hidden="true" />
+                  Поддержка
                 </Link>
-              </div>
+                <div className="flex gap-2 py-3">
+                  <Link to="/login" className="btn-outline flex-1">
+                    Вход
+                  </Link>
+                  <Link to="/register" className="btn-primary flex-1">
+                    Регистрация
+                  </Link>
+                </div>
+              </>
             )}
           </div>
         </nav>
