@@ -24,12 +24,11 @@ function todayLine() {
   });
 }
 
-// Шапка: дата слева, название по центру, служебные ссылки справа.
+// Шапка в одну строку: название издания слева, служебные ссылки справа.
 // Разделов нет — сайт показывает единую ленту.
 export default function Navbar() {
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [tagline, setTagline] = useState('');
   const [title, setTitle] = useState('НОВОСТИ СЕКУНДЫ');
   const location = useLocation();
   const navigate = useNavigate();
@@ -44,20 +43,15 @@ export default function Navbar() {
       .get('/settings')
       .then(({ data }) => {
         if (cancelled) return;
-        setTagline(data.site_tagline || '');
         if (data.site_title) setTitle(data.site_title);
       })
       .catch(() => {
-        // Подзаголовок необязателен: без него шапка просто чуть короче.
+        // Название по умолчанию уже задано — без настроек шапка не пострадает.
       });
     return () => {
       cancelled = true;
     };
   }, []);
-
-  // Название набирается в две строки: первое слово крупно, остальное — разрядкой.
-  const [titleTop, ...titleRest] = title.trim().split(/\s+/);
-  const titleBottom = titleRest.join(' ');
 
   const handleLogout = () => {
     logout();
@@ -67,20 +61,22 @@ export default function Navbar() {
   return (
     <header className="border-b-[3px] border-double border-ink bg-white">
       <div className="mx-auto max-w-7xl px-4">
-        <div className="flex items-center justify-between gap-4 border-b border-neutral-200 py-2 text-[11px] uppercase tracking-widest text-neutral-500">
+        <div className="flex items-center justify-between gap-4 py-3 text-[11px] uppercase tracking-widest text-neutral-500">
           <div className="flex min-w-0 items-center gap-3">
-            {/* Знак издания слева: короткий путь на главную с любой страницы. */}
+            {/* Название издания слева — оно же ссылка на главную. */}
             <Link
               to="/"
-              className="flex shrink-0 items-center gap-1.5 text-brand transition-colors hover:text-brand-hover"
+              className="flex shrink-0 items-center gap-2 text-ink transition-colors hover:text-brand"
               aria-label="На главную"
               title="На главную"
             >
-              <Newspaper className="h-5 w-5" aria-hidden="true" />
-              <span className="text-[11px] font-bold tracking-[0.14em]">НС</span>
+              <Newspaper className="h-6 w-6 shrink-0 text-brand sm:h-7 sm:w-7" aria-hidden="true" />
+              <span className="font-serif text-lg font-black uppercase leading-none tracking-[0.06em] sm:text-2xl">
+                {title}
+              </span>
             </Link>
 
-            <span className="hidden truncate sm:inline">{todayLine()}</span>
+            <span className="hidden truncate lg:inline">{todayLine()}</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -129,23 +125,6 @@ export default function Navbar() {
               {menuOpen ? <X className="h-5 w-5" aria-hidden="true" /> : <Menu className="h-5 w-5" aria-hidden="true" />}
             </button>
           </div>
-        </div>
-
-        <div className="py-4 text-center sm:py-6">
-          <Link to="/" className="inline-block">
-            <h1 className="font-serif text-3xl font-black uppercase leading-none tracking-[0.08em] text-ink sm:text-5xl">
-              {titleTop}
-            </h1>
-            {titleBottom && (
-              <span className="mt-1 block font-serif text-base uppercase tracking-[0.35em] text-brand sm:text-xl">
-                {titleBottom}
-              </span>
-            )}
-          </Link>
-
-          {tagline && (
-            <p className="mt-2 font-serif text-xs italic text-neutral-500 sm:text-sm">{tagline}</p>
-          )}
         </div>
 
       </div>
