@@ -7,13 +7,13 @@ import {
   LifeBuoy,
   LogOut,
   Menu,
-  Newspaper,
   User,
   X,
 } from 'lucide-react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import Avatar from './Avatar';
+import BrandMark from './BrandMark';
 
 function todayLine() {
   return new Date().toLocaleDateString('ru-RU', {
@@ -72,7 +72,7 @@ export default function Navbar() {
               aria-label="На главную"
               title="На главную"
             >
-              <Newspaper className="h-6 w-6 shrink-0" aria-hidden="true" />
+              <BrandMark className="h-7 w-7 shrink-0 sm:h-8 sm:w-8" />
               <span className="text-lg font-extrabold tracking-tight sm:text-xl">{title}</span>
             </Link>
 

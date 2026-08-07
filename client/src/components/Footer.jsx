@@ -1,12 +1,12 @@
 import { Link } from 'react-router-dom';
-import { Newspaper } from 'lucide-react';
+import BrandMark from './BrandMark';
 
 export default function Footer() {
   return (
     <footer className="mt-12 border-t border-neutral-200 bg-white">
       <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-8 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2 text-brand">
-          <Newspaper className="h-5 w-5" aria-hidden="true" />
+          <BrandMark className="h-6 w-6" />
           <span className="text-sm font-extrabold tracking-tight">НОВОСТИ СЕКУНДЫ</span>
         </div>
 

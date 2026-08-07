@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Bookmark, BookmarkCheck, Clock, Eye, MessageSquare, Send, Trash2 } from 'lucide-react';
+import { ArrowLeft, Bookmark, BookmarkCheck, Clock, Eye, MessageSquare, Pencil, Send, Trash2 } from 'lucide-react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import Loader from '../components/Loader';
@@ -184,7 +184,21 @@ export default function Article() {
             )}
           </div>
 
-          <h1 className="font-serif text-4xl font-black leading-[1.1] text-ink sm:text-5xl">{article.title}</h1>
+          <div className="flex items-start justify-between gap-4">
+            <h1 className="font-serif text-4xl font-black leading-[1.1] text-ink sm:text-5xl">{article.title}</h1>
+
+            {/* Правка материала живёт в панели: там же лежат картинки и статус. */}
+            {isAdmin && (
+              <Link
+                to={`/admin/articles?edit=${article.id}`}
+                className="btn-outline shrink-0 text-xs"
+                title="Редактировать материал"
+              >
+                <Pencil className="h-4 w-4" aria-hidden="true" />
+                Изменить
+              </Link>
+            )}
+          </div>
 
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-neutral-200 pb-4 text-sm text-neutral-500">
             <span className="flex items-center gap-2">

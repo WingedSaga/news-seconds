@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Check, Eye, Pencil, Save, Trash2, X } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { Check, Eye, ImagePlus, Paperclip, Pencil, Save, Trash2, X } from 'lucide-react';
 import api from '../../api/axios';
 import Loader from '../../components/Loader';
 import ErrorMessage from '../../components/ErrorMessage';
 import EmptyState from '../../components/EmptyState';
 import SearchBar from '../../components/SearchBar';
 import { CATEGORY_LABELS, STATUS_CLASSES, STATUS_LABELS, formatRelativeDate } from '../../utils/format';
+
+const MAX_IMAGES = 5;
 
 const STATUS_FILTERS = [
   { value: '', label: 'Все' },
@@ -24,9 +26,11 @@ export default function AdminArticles() {
   const [error, setError] = useState('');
   const [editing, setEditing] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [reloadToken, setReloadToken] = useState(0);
   const [selected, setSelected] = useState([]);
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search.trim()), 300);
@@ -61,6 +65,18 @@ export default function AdminArticles() {
   }, [status, debouncedSearch, reloadToken]);
 
   const reload = useCallback(() => setReloadToken((token) => token + 1), []);
+
+  // Со страницы материала сюда приходят со ссылкой ?edit=<id>: открываем
+  // этот материал сразу, чтобы не искать его в списке руками.
+  const requestedEdit = searchParams.get('edit');
+  useEffect(() => {
+    if (!requestedEdit || loading) return;
+
+    const article = items.find((item) => item.id === requestedEdit);
+    if (article) startEdit(article);
+    setSearchParams({}, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requestedEdit, loading, items]);
 
   const toggleOne = (id) => {
     setSelected((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
@@ -97,7 +113,66 @@ export default function AdminArticles() {
       content: article.content,
       category: article.category,
       status: article.status,
+      // Старые записи хранят одну картинку в image_url, новые — список.
+      images: article.image_urls?.length
+        ? [...article.image_urls]
+        : article.image_url
+          ? [article.image_url]
+          : [],
+      media_url: article.media_url || '',
+      media_type: article.media_type || '',
     });
+  };
+
+  const addImages = async (event) => {
+    const chosen = Array.from(event.target.files || []);
+    const free = MAX_IMAGES - editing.images.length;
+    if (chosen.length === 0) return;
+
+    setError('');
+    if (free <= 0) {
+      setError(`К новости можно приложить не больше ${MAX_IMAGES} изображений`);
+      event.target.value = '';
+      return;
+    }
+
+    setUploading(true);
+    try {
+      for (const file of chosen.slice(0, free)) {
+        const formData = new FormData();
+        formData.append('image', file);
+        const { data } = await api.post('/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        setEditing((prev) => ({ ...prev, images: [...prev.images, data.url] }));
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setUploading(false);
+      event.target.value = '';
+    }
+  };
+
+  const addMedia = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setError('');
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('media', file);
+      const { data } = await api.post('/upload/media', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setEditing((prev) => ({ ...prev, media_url: data.url, media_type: data.media_type }));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setUploading(false);
+      event.target.value = '';
+    }
   };
 
   const saveEdit = async (event) => {
@@ -120,6 +195,11 @@ export default function AdminArticles() {
         content: editing.content.trim(),
         category: editing.category,
         status: editing.status,
+        image_urls: editing.images,
+        // Обложка — первая картинка: по ней материал показывается в ленте.
+        image_url: editing.images[0] || '',
+        media_url: editing.media_url,
+        media_type: editing.media_url ? editing.media_type : '',
       });
       setItems((prev) => prev.map((article) => (article.id === data.item.id ? data.item : article)));
       setEditing(null);
@@ -356,11 +436,97 @@ export default function AdminArticles() {
               />
             </div>
 
+            <div className="space-y-2">
+              <p className="text-sm font-semibold text-neutral-700">
+                Изображения ({editing.images.length} из {MAX_IMAGES})
+              </p>
+
+              {editing.images.length > 0 && (
+                <ul className="flex flex-wrap gap-2">
+                  {editing.images.map((url, index) => (
+                    <li key={url} className="relative">
+                      <img
+                        src={url}
+                        alt={index === 0 ? 'Обложка' : `Изображение ${index + 1}`}
+                        className="h-20 w-28 rounded border border-neutral-200 object-cover"
+                      />
+                      {index === 0 && (
+                        <span className="absolute bottom-1 left-1 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                          Обложка
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setEditing({
+                            ...editing,
+                            images: editing.images.filter((item) => item !== url),
+                          })
+                        }
+                        className="absolute -right-2 -top-2 rounded-full bg-white p-1 text-red-600 shadow ring-1 ring-neutral-200"
+                        aria-label="Убрать изображение"
+                      >
+                        <X className="h-3.5 w-3.5" aria-hidden="true" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {editing.images.length < MAX_IMAGES && (
+                <label className="btn-outline cursor-pointer text-xs">
+                  <ImagePlus className="h-4 w-4" aria-hidden="true" />
+                  {uploading ? 'Загружаем...' : 'Добавить изображение'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    disabled={uploading}
+                    onChange={addImages}
+                  />
+                </label>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-sm font-semibold text-neutral-700">Аудио или видео</p>
+
+              {editing.media_url ? (
+                <div className="flex items-center gap-2 rounded border border-neutral-200 px-3 py-2 text-sm">
+                  <Paperclip className="h-4 w-4 shrink-0 text-neutral-400" aria-hidden="true" />
+                  <span className="flex-1 truncate text-neutral-600">
+                    {editing.media_type === 'video' ? 'Видео' : 'Аудио'} прикреплено
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setEditing({ ...editing, media_url: '', media_type: '' })}
+                    className="text-red-600"
+                    aria-label="Убрать вложение"
+                  >
+                    <X className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                </div>
+              ) : (
+                <label className="btn-outline cursor-pointer text-xs">
+                  <Paperclip className="h-4 w-4" aria-hidden="true" />
+                  {uploading ? 'Загружаем...' : 'Прикрепить MP3 или MP4'}
+                  <input
+                    type="file"
+                    accept="audio/mpeg,video/mp4,.mp3,.mp4"
+                    className="hidden"
+                    disabled={uploading}
+                    onChange={addMedia}
+                  />
+                </label>
+              )}
+            </div>
+
             <div className="flex justify-end gap-2">
               <button type="button" className="btn-ghost" onClick={() => setEditing(null)}>
                 Отмена
               </button>
-              <button type="submit" className="btn-primary" disabled={saving}>
+              <button type="submit" className="btn-primary" disabled={saving || uploading}>
                 <Save className="h-4 w-4" aria-hidden="true" />
                 {saving ? 'Сохраняем...' : 'Сохранить'}
               </button>

@@ -1,6 +1,7 @@
 const { supabase } = require('../db/supabase');
 const settings = require('../services/settings');
 const { articleSelect, pickWritableColumns } = require('../db/schemaState');
+const { shouldCountView } = require('../utils/viewGuard');
 
 // В значениях фильтров PostgREST спецсимволы ломают выражение `or`, убираем их.
 function sanitizeSearch(value) {
@@ -128,7 +129,7 @@ async function getArticle(req, res, next) {
       return res.status(404).json({ message: 'Статья не найдена' });
     }
 
-    if (article.status === 'approved') {
+    if (article.status === 'approved' && shouldCountView(req, article.id)) {
       const { error: viewsError } = await supabase.rpc('increment_article_views', {
         article_id: article.id,
       });
