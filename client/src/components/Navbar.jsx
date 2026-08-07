@@ -5,6 +5,7 @@ import {
   FilePlus2,
   LayoutDashboard,
   LifeBuoy,
+  Heart,
   LogOut,
   Menu,
   Newspaper,
@@ -15,6 +16,7 @@ import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import Avatar from './Avatar';
 import BrandMark from './BrandMark';
+import { DONATION_URL } from '../constants';
 
 function todayLine() {
   return new Date().toLocaleDateString('ru-RU', {
@@ -81,6 +83,18 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Пожертвование — внешняя ссылка, поэтому обычный <a>. */}
+            <a
+              href={DONATION_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-outline hidden py-1 sm:inline-flex"
+              title="Поддержать издание"
+            >
+              <Heart className="h-4 w-4" aria-hidden="true" />
+              Поддержать
+            </a>
+
             {isAuthenticated ? (
               <>
                 <Link to="/bookmarks" className="btn-ghost hidden sm:inline-flex" title="Закладки">
@@ -155,6 +169,15 @@ export default function Navbar() {
                   <LifeBuoy className="h-4 w-4" aria-hidden="true" />
                   Поддержка
                 </Link>
+                <a
+                  href={DONATION_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 py-3 text-sm font-semibold text-brand"
+                >
+                  <Heart className="h-4 w-4" aria-hidden="true" />
+                  Поддержать
+                </a>
                 {isAdmin && (
                   <Link to="/admin" className="flex items-center gap-2 py-3 text-sm font-semibold text-neutral-600">
                     <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
@@ -181,6 +204,15 @@ export default function Navbar() {
                   <LifeBuoy className="h-4 w-4" aria-hidden="true" />
                   Поддержка
                 </Link>
+                <a
+                  href={DONATION_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 py-3 text-sm font-semibold text-brand"
+                >
+                  <Heart className="h-4 w-4" aria-hidden="true" />
+                  Поддержать
+                </a>
                 <div className="flex gap-2 py-3">
                   <Link to="/login" className="btn-outline flex-1">
                     Вход

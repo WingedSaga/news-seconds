@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
+import { Heart } from 'lucide-react';
 import BrandMark from './BrandMark';
+import { DONATION_URL } from '../constants';
 
 export default function Footer() {
   return (
@@ -20,6 +22,17 @@ export default function Footer() {
           <Link to="/support" className="hover:text-brand">
             Поддержка
           </Link>
+          {/* Внешняя ссылка: открываем в новой вкладке, чтобы не уводить
+              читателя с сайта. */}
+          <a
+            href={DONATION_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 font-semibold text-brand hover:text-brand-hover"
+          >
+            <Heart className="h-4 w-4" aria-hidden="true" />
+            Поддержать
+          </a>
         </nav>
 
         <p className="text-xs text-neutral-400">
