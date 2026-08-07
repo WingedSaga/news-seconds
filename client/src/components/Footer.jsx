@@ -1,9 +1,13 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Heart } from 'lucide-react';
 import BrandMark from './BrandMark';
+import Calculator from './Calculator';
 import { DONATION_URL } from '../constants';
 
 export default function Footer() {
+  const [calcOpen, setCalcOpen] = useState(false);
+
   return (
     <footer className="mt-12 border-t border-neutral-200 bg-white">
       <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-8 sm:flex-row sm:items-center sm:justify-between">
@@ -35,10 +39,22 @@ export default function Footer() {
           </a>
         </nav>
 
-        <p className="text-xs text-neutral-400">
+        <p className="flex items-center gap-1 text-xs text-neutral-400">
           © {new Date().getFullYear()} НОВОСТИ СЕКУНДЫ. Все права защищены.
+          {/* Тайный знак: почти сливается с фоном, проявляется при наведении. */}
+          <button
+            type="button"
+            onClick={() => setCalcOpen(true)}
+            aria-label="?"
+            title="?"
+            className="ml-0.5 rounded px-1 font-bold text-neutral-200 transition-colors hover:text-brand"
+          >
+            ?
+          </button>
         </p>
       </div>
+
+      {calcOpen && <Calculator onClose={() => setCalcOpen(false)} />}
     </footer>
   );
 }
