@@ -61,22 +61,22 @@ export default function Navbar() {
   return (
     <header className="border-b-[3px] border-double border-ink bg-white">
       <div className="mx-auto max-w-7xl px-4">
-        <div className="flex items-center justify-between gap-4 py-3 text-[11px] uppercase tracking-widest text-neutral-500">
+        {/* Разрядка живёт на самих служебных надписях: на названии издания
+            она бы перебила его собственную плотную посадку. */}
+        <div className="flex items-center justify-between gap-4 py-3 text-[11px] uppercase text-neutral-500">
           <div className="flex min-w-0 items-center gap-3">
             {/* Название издания слева — оно же ссылка на главную. */}
             <Link
               to="/"
-              className="flex shrink-0 items-center gap-2 text-ink transition-colors hover:text-brand"
+              className="flex shrink-0 items-center gap-2 text-brand transition-colors hover:text-brand-hover"
               aria-label="На главную"
               title="На главную"
             >
-              <Newspaper className="h-6 w-6 shrink-0 text-brand sm:h-7 sm:w-7" aria-hidden="true" />
-              <span className="font-serif text-lg font-black uppercase leading-none tracking-[0.06em] sm:text-2xl">
-                {title}
-              </span>
+              <Newspaper className="h-6 w-6 shrink-0" aria-hidden="true" />
+              <span className="text-lg font-extrabold tracking-tight sm:text-xl">{title}</span>
             </Link>
 
-            <span className="hidden truncate lg:inline">{todayLine()}</span>
+            <span className="hidden truncate tracking-widest lg:inline">{todayLine()}</span>
           </div>
 
           <div className="flex items-center gap-2">
