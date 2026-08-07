@@ -17,10 +17,12 @@ export default {
         ink: '#1A1A1A',
       },
       fontFamily: {
+        // Оба шрифта лежат в репозитории (src/fonts) и покрывают кириллицу.
         sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
         // Заголовки набираются шрифтом с засечками — это и даёт газетный вид.
-        // Только системные шрифты: внешние подключать нечем и незачем.
-        serif: ['Georgia', 'Times New Roman', 'PT Serif', 'serif'],
+        // Имя в кавычках: без них цифра в «Source Serif 4» делает запись
+        // невалидной и браузер молча выбрасывает шрифт.
+        serif: ['"Source Serif 4"', 'Georgia', 'PT Serif', 'serif'],
       },
       keyframes: {
         ticker: {
