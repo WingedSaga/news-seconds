@@ -56,11 +56,6 @@
     @apply font-serif text-[17px] leading-[1.75] text-ink;
   }
 
-  /* Буквица у первого абзаца материала. */
-  .dropcap::first-letter {
-    @apply float-left mr-2 mt-1 font-serif text-[3.25rem] font-black leading-[0.8] text-brand;
-  }
-
   .field {
     @apply w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm
       placeholder:text-neutral-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand;

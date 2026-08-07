@@ -219,7 +219,7 @@ export default function Article() {
             </figure>
           )}
 
-          <div className="prose-news dropcap whitespace-pre-wrap">{article.content}</div>
+          <div className="prose-news whitespace-pre-wrap">{article.content}</div>
 
           {isAuthenticated && (
             <div className="flex justify-end border-t border-neutral-200 pt-4">
