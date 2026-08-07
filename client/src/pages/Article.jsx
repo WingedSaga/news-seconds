@@ -30,7 +30,7 @@ function Gallery({ images, title }) {
         <img
           src={images[active]}
           alt={`${title} — изображение ${active + 1}`}
-          className="h-64 w-full object-cover sm:h-96"
+          className="aspect-[16/9] w-full object-cover"
         />
         <span className="absolute bottom-3 right-3 rounded-full bg-black/50 p-2 text-white opacity-0 transition-opacity group-hover:opacity-100">
           <Maximize2 className="h-4 w-4" aria-hidden="true" />

@@ -7,24 +7,22 @@ import EmptyState from '../components/EmptyState';
 // Заглушка на время загрузки, повторяющая ритм самой ленты.
 function FeedSkeleton() {
   return (
-    <div className="space-y-10" aria-hidden="true">
+    <div className="space-y-12" aria-hidden="true">
       <div className="animate-pulse space-y-4">
-        <div className="h-64 w-full rounded-2xl bg-neutral-200 sm:h-96" />
+        <div className="aspect-[16/9] w-full rounded-2xl bg-neutral-200" />
         <div className="h-9 w-3/4 rounded bg-neutral-200" />
         <div className="h-4 w-full rounded bg-neutral-100" />
-        <div className="h-4 w-5/6 rounded bg-neutral-100" />
       </div>
 
-      {[0, 1, 2].map((index) => (
-        <div key={index} className="flex animate-pulse gap-5">
-          <div className="flex-1 space-y-3">
-            <div className="h-6 w-4/5 rounded bg-neutral-200" />
+      <div className="grid gap-x-8 gap-y-10 md:grid-cols-2">
+        {[0, 1, 2, 3].map((index) => (
+          <div key={index} className="animate-pulse space-y-3">
+            <div className="aspect-[16/10] w-full rounded-xl bg-neutral-200" />
+            <div className="h-5 w-4/5 rounded bg-neutral-200" />
             <div className="h-4 w-full rounded bg-neutral-100" />
-            <div className="h-4 w-2/3 rounded bg-neutral-100" />
           </div>
-          <div className="h-36 w-56 shrink-0 rounded-xl bg-neutral-200" />
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
@@ -37,31 +35,40 @@ export default function Home() {
   const [lead, ...rest] = items;
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <div className="relative mb-10">
-        <Search
-          className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400"
-          aria-hidden="true"
-        />
-        <input
-          type="search"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Поиск по материалам"
-          aria-label="Поиск"
-          className="w-full rounded-full border border-neutral-300 bg-white py-3 pl-11 pr-11 text-[15px]
-            placeholder:text-neutral-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
-        />
-        {search && (
-          <button
-            type="button"
-            onClick={() => setSearch('')}
-            aria-label="Очистить поиск"
-            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600"
-          >
-            <X className="h-4 w-4" aria-hidden="true" />
-          </button>
-        )}
+    <div className="mx-auto max-w-6xl">
+      {/* Заголовок и поиск в одной строке: поле перестаёт висеть посреди
+          пустоты и сразу читается как часть ленты. */}
+      <div className="mb-8 flex flex-col gap-4 border-b border-neutral-200 pb-5 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="font-serif text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+          Лента
+        </h1>
+
+        <div className="relative sm:w-80">
+          <Search
+            className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400"
+            aria-hidden="true"
+          />
+          <input
+            type="search"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Поиск по материалам"
+            aria-label="Поиск"
+            className="w-full rounded-full border border-neutral-300 bg-white py-2.5 pl-10 pr-10 text-sm
+              transition-colors placeholder:text-neutral-400 focus:border-brand focus:outline-none
+              focus:ring-2 focus:ring-brand/25"
+          />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch('')}
+              aria-label="Очистить поиск"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600"
+            >
+              <X className="h-4 w-4" aria-hidden="true" />
+            </button>
+          )}
+        </div>
       </div>
 
       <ErrorMessage message={error} onRetry={retry} />
@@ -80,11 +87,11 @@ export default function Home() {
           />
         )
       ) : (
-        <div className="space-y-10">
+        <div className="space-y-12">
           <FeedItem article={lead} variant="hero" />
 
           {rest.length > 0 && (
-            <div className="space-y-10 border-t border-neutral-200 pt-10">
+            <div className="grid gap-x-8 gap-y-10 border-t border-neutral-200 pt-10 md:grid-cols-2">
               {rest.map((article) => (
                 <FeedItem key={article.id} article={article} />
               ))}
@@ -99,7 +106,7 @@ export default function Home() {
           )}
 
           {hasMore && !loadingMore && (
-            <div className="flex justify-center pt-2">
+            <div className="flex justify-center">
               <button
                 type="button"
                 onClick={loadMore}
@@ -113,7 +120,7 @@ export default function Home() {
           )}
 
           {!hasMore && (
-            <p className="pt-4 text-center text-sm text-neutral-400">Это все материалы</p>
+            <p className="text-center text-sm text-neutral-400">Это все материалы</p>
           )}
         </div>
       )}

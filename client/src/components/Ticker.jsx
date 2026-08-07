@@ -30,9 +30,9 @@ export default function Ticker() {
   const loop = [...items, ...items];
 
   return (
-    <div className="border-y border-ink bg-ink text-white">
+    <div className="border-b border-brand-dark/40 bg-brand-dark text-white">
       <div className="mx-auto flex max-w-7xl items-center gap-3 px-4">
-        <span className="flex shrink-0 items-center gap-2 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-accent">
+        <span className="flex shrink-0 items-center gap-2 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-accent/90">
           <Radio className="h-4 w-4" aria-hidden="true" />
           <span className="hidden sm:inline">Срочно</span>
         </span>
