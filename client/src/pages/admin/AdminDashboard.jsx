@@ -42,7 +42,15 @@ export default function AdminDashboard() {
     return <ErrorMessage message={error} onRetry={load} />;
   }
 
-  const categoryItems = Object.entries(stats.byCategory).map(([key, value]) => ({
+  // Раздел может не отдать часть данных — например, пока не выполнена
+  // миграция для поддержки. Пустые значения лучше пустой страницы.
+  const byCategory = stats.byCategory || {};
+  const timeline = stats.timeline || [];
+  const topArticles = stats.topArticles || [];
+  const latestPending = stats.latestPending || [];
+  const latestComments = stats.latestComments || [];
+
+  const categoryItems = Object.entries(byCategory).map(([key, value]) => ({
     label: CATEGORY_LABELS[key] || key,
     value,
   }));
@@ -90,7 +98,7 @@ export default function AdminDashboard() {
         />
       </div>
 
-      <TimelineChart title="Публикации за две недели" points={stats.timeline} />
+      <TimelineChart title="Публикации за две недели" points={timeline} />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <BarList title="Материалы по разделам" items={categoryItems} />
@@ -100,11 +108,11 @@ export default function AdminDashboard() {
       <div className="grid gap-4 lg:grid-cols-2">
         <section className="card space-y-3 p-5">
           <h2 className="text-base font-bold text-neutral-900">Самые читаемые</h2>
-          {stats.topArticles.length === 0 ? (
+          {topArticles.length === 0 ? (
             <p className="text-sm text-neutral-500">Пока нет опубликованных материалов.</p>
           ) : (
             <ol className="space-y-2">
-              {stats.topArticles.map((article, index) => (
+              {topArticles.map((article, index) => (
                 <li key={article.id} className="flex items-baseline gap-3 text-sm">
                   <span className="w-4 shrink-0 font-bold text-neutral-400">{index + 1}</span>
                   <Link to={`/article/${article.id}`} className="min-w-0 flex-1 truncate hover:text-brand">
@@ -125,11 +133,11 @@ export default function AdminDashboard() {
             </Link>
           </div>
 
-          {stats.latestPending.length === 0 ? (
+          {latestPending.length === 0 ? (
             <p className="text-sm text-neutral-500">Очередь модерации пуста.</p>
           ) : (
             <ul className="space-y-2">
-              {stats.latestPending.map((article) => (
+              {latestPending.map((article) => (
                 <li key={article.id} className="text-sm">
                   <p className="truncate font-semibold text-neutral-800">{article.title}</p>
                   <p className="text-xs text-neutral-500">
@@ -150,11 +158,11 @@ export default function AdminDashboard() {
           </Link>
         </div>
 
-        {stats.latestComments.length === 0 ? (
+        {latestComments.length === 0 ? (
           <p className="text-sm text-neutral-500">Комментариев пока нет.</p>
         ) : (
           <ul className="divide-y divide-neutral-100">
-            {stats.latestComments.map((comment) => (
+            {latestComments.map((comment) => (
               <li key={comment.id} className="py-2 text-sm">
                 <p className="text-neutral-700">{excerpt(comment.text, 120)}</p>
                 <p className="text-xs text-neutral-500">

@@ -60,7 +60,7 @@ export function BarList({ title, items, empty = 'Нет данных' }) {
 
 // Публикации по дням: столбцы одной высотной шкалы, подписи только по краям,
 // точное значение доступно по наведению.
-export function TimelineChart({ title, points }) {
+export function TimelineChart({ title, points = [] }) {
   const max = Math.max(1, ...points.map((point) => point.count));
   const total = points.reduce((sum, point) => sum + point.count, 0);
 
@@ -89,10 +89,12 @@ export function TimelineChart({ title, points }) {
         ))}
       </div>
 
+      {points.length > 0 && (
       <div className="flex justify-between text-xs text-neutral-400">
         <span>{dayLabel(points[0]?.date)}</span>
         <span>{dayLabel(points[points.length - 1]?.date)}</span>
       </div>
+      )}
     </section>
   );
 }

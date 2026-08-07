@@ -9,6 +9,14 @@
     scroll-behavior: smooth;
   }
 
+  /* Ничто не должно двигать страницу вбок: всё, что шире экрана —
+     таблицы, полоса разделов, бегущая строка — прокручивается внутри
+     своей рамки, а не утягивает за собой весь макет. */
+  html,
+  body {
+    @apply max-w-full overflow-x-hidden;
+  }
+
   body {
     @apply bg-paper text-ink antialiased;
   }

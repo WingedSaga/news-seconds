@@ -24,7 +24,9 @@ const LINKS = [
 
 export default function AdminSidebar() {
   return (
-    <aside className="w-full shrink-0 bg-brand-dark text-white lg:min-h-[calc(100vh-4rem)] lg:w-60">
+    // Без min-w-0 полоса разделов растягивала всю страницу шире экрана:
+    // прокрутка оставалась у страницы, а не у самой полосы.
+    <aside className="w-full min-w-0 shrink-0 bg-brand-dark text-white lg:min-h-[calc(100vh-4rem)] lg:w-60">
       <div className="px-4 py-4 lg:py-6">
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-accent">Панель</p>
         <p className="text-lg font-extrabold">Администратор</p>
