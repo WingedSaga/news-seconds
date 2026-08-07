@@ -3,6 +3,7 @@ import { Check, ImagePlus, Save, Trash2 } from 'lucide-react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import Avatar from '../components/Avatar';
+import AvatarCropper from '../components/AvatarCropper';
 import ErrorMessage from '../components/ErrorMessage';
 import { formatDateTime } from '../utils/format';
 
@@ -16,14 +17,18 @@ export default function Profile() {
   const [saved, setSaved] = useState('');
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [cropping, setCropping] = useState(null);
 
   const flash = (message) => {
     setSaved(message);
     setTimeout(() => setSaved(''), 2500);
   };
 
-  const handleAvatarChange = async (event) => {
+  // Выбранный файл сначала показываем в окне кадрирования: на сервер
+  // уходит уже квадратный кусок, а не то, что сняла камера.
+  const handleAvatarChange = (event) => {
     const file = event.target.files?.[0];
+    event.target.value = '';
     if (!file) return;
 
     setError('');
@@ -37,8 +42,15 @@ export default function Profile() {
       return;
     }
 
+    setCropping(file);
+  };
+
+  const uploadCropped = async (blob) => {
+    setCropping(null);
+    setError('');
+
     const formData = new FormData();
-    formData.append('image', file);
+    formData.append('image', blob, 'avatar.jpg');
 
     setUploading(true);
     try {
@@ -51,7 +63,6 @@ export default function Profile() {
       setError(err.message);
     } finally {
       setUploading(false);
-      event.target.value = '';
     }
   };
 
@@ -97,6 +108,10 @@ export default function Profile() {
         </p>
       </div>
 
+      {cropping && (
+        <AvatarCropper file={cropping} onCancel={() => setCropping(null)} onDone={uploadCropped} />
+      )}
+
       <ErrorMessage message={error} />
 
       {saved && (
@@ -141,7 +156,8 @@ export default function Profile() {
           </div>
 
           <p className="text-xs text-neutral-400">
-            JPG, PNG, WEBP или GIF, до 5 МБ. Без своей картинки показываются инициалы.
+            JPG, PNG, WEBP или GIF, до 5 МБ. Перед сохранением можно выбрать область.
+            Без своей картинки показываются инициалы.
           </p>
         </div>
       </section>

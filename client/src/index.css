@@ -28,12 +28,12 @@
 
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-semibold
-      transition-colors disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold
+      transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60;
   }
 
   .btn-primary {
-    @apply btn bg-brand text-white hover:bg-brand-hover;
+    @apply btn bg-brand text-white shadow-sm hover:bg-brand-hover hover:shadow;
   }
 
   .btn-outline {
@@ -48,10 +48,10 @@
     @apply btn border border-red-300 text-red-700 hover:bg-red-600 hover:text-white hover:border-red-600;
   }
 
-  /* Плоская карточка на волосяной линейке: тени и скругления выдают
-     интерфейс, газетная полоса держится на линейках и воздухе. */
+  /* Карточка: мягкая рамка и почти незаметная тень. Резкая линейка
+     спорила со скруглёнными снимками и полем поиска. */
   .card {
-    @apply rounded-sm border border-neutral-300/70 bg-white;
+    @apply rounded-xl border border-neutral-200 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)];
   }
 
   /* Надзаголовок: мелкие прописные над заголовком, как рубрика в газете. */
@@ -65,23 +65,24 @@
   }
 
   .field {
-    @apply w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm
-      placeholder:text-neutral-400 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand;
+    @apply w-full rounded-lg border border-neutral-300 bg-white px-3.5 py-2.5 text-sm transition-colors
+      placeholder:text-neutral-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/25;
   }
 
-  /* Заголовок раздела: подпись с засечками на всю ширину полосы. */
+  /* Заголовок раздела: крупная антиква на тонкой линейке. Прописные
+     вразрядку читались тяжело и спорили с названием издания. */
   .section-title {
-    @apply flex items-baseline justify-between gap-4 border-b-2 border-ink pb-2 font-serif
-      text-xl font-black uppercase tracking-[0.16em] text-ink;
+    @apply flex items-baseline justify-between gap-4 border-b border-neutral-200 pb-3 font-serif
+      text-2xl font-bold tracking-tight text-ink sm:text-3xl;
   }
 
   .pill {
-    @apply inline-flex items-center rounded-sm bg-brand px-2 py-0.5 text-[10px] font-bold uppercase
+    @apply inline-flex items-center rounded-full bg-brand px-2.5 py-1 text-[10px] font-bold uppercase
       tracking-[0.12em] text-white;
   }
 
   .pill-accent {
-    @apply inline-flex items-center rounded-sm bg-brand-accent px-2 py-0.5 text-[10px] font-bold
+    @apply inline-flex items-center rounded-full bg-brand-accent px-2.5 py-1 text-[10px] font-bold
       uppercase tracking-[0.12em] text-brand-dark;
   }
 }

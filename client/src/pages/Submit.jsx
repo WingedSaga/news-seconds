@@ -39,7 +39,7 @@ export default function Submit() {
     const content = form.content.trim();
 
     if (title.length < 5 || title.length > 200) errors.title = 'Заголовок должен быть от 5 до 200 символов';
-    if (content.length < 20) errors.content = 'Текст должен быть не короче 20 символов';
+    if (content.length === 0) errors.content = 'Напишите текст новости';
     if (content.length > 20000) errors.content = 'Текст не должен превышать 20000 символов';
 
     setFieldErrors(errors);

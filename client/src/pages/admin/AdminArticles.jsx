@@ -183,8 +183,8 @@ export default function AdminArticles() {
       setError('Заголовок должен быть не короче 5 символов');
       return;
     }
-    if (editing.content.trim().length < 20) {
-      setError('Текст должен быть не короче 20 символов');
+    if (editing.content.trim().length === 0) {
+      setError('Текст не может быть пустым');
       return;
     }
 

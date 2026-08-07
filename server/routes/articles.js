@@ -31,8 +31,8 @@ router.post(
       .withMessage('Заголовок должен быть от 5 до 200 символов'),
     body('content')
       .trim()
-      .isLength({ min: 20, max: 20000 })
-      .withMessage('Текст должен быть от 20 до 20000 символов'),
+      .isLength({ min: 1, max: 20000 })
+      .withMessage('Напишите текст новости — не длиннее 20000 символов'),
     body('category')
       .isIn(['news', 'joke', 'weather'])
       .withMessage('Выберите категорию: новости, анекдоты или погода'),

@@ -88,7 +88,7 @@ export default function Navbar() {
               href={DONATION_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-outline hidden py-1 sm:inline-flex"
+              className="btn-ghost hidden py-1.5 text-brand hover:bg-brand-accent/30 sm:inline-flex"
               title="Поддержать издание"
             >
               <Heart className="h-4 w-4" aria-hidden="true" />
@@ -121,10 +121,10 @@ export default function Navbar() {
               </>
             ) : (
               <>
-                <Link to="/login" className="btn-outline hidden py-1 sm:inline-flex">
+                <Link to="/login" className="btn-outline hidden py-1.5 sm:inline-flex">
                   Вход
                 </Link>
-                <Link to="/register" className="btn-primary hidden py-1 sm:inline-flex">
+                <Link to="/register" className="btn-primary hidden py-1.5 sm:inline-flex">
                   Регистрация
                 </Link>
               </>

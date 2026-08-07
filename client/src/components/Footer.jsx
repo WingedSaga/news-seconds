@@ -9,7 +9,7 @@ export default function Footer() {
       <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-8 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2 text-brand">
           <BrandMark className="h-6 w-6" />
-          <span className="text-sm font-extrabold tracking-tight">НОВОСТИ СЕКУНДЫ</span>
+          <span className="whitespace-nowrap text-sm font-extrabold tracking-tight">НОВОСТИ СЕКУНДЫ</span>
         </div>
 
         <nav className="flex flex-wrap gap-4 text-sm text-neutral-500">
