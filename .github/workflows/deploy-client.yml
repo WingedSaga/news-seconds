@@ -40,8 +40,9 @@ jobs:
           # Адрес развёрнутого backend. По умолчанию — рабочий сервис на Render;
           # переопределяется переменной VITE_API_URL в Settings -> Secrets and variables -> Actions -> Variables
           VITE_API_URL: ${{ vars.VITE_API_URL || 'https://novosti-sekundy-api.onrender.com/api' }}
-          # Подпапка GitHub Pages: /<имя-репозитория>/
-          VITE_BASE_PATH: /${{ github.event.repository.name }}/
+          # Сайт живёт на своём домене (client/public/CNAME), то есть в корне.
+          # Для подпапки /<имя-репозитория>/ здесь была бы другая строка.
+          VITE_BASE_PATH: /
         run: npm run build
 
       - name: SPA-фолбэк для прямых ссылок
