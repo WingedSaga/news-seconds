@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Bookmark, BookmarkCheck, Clock, Eye, MessageSquare, Pencil, Send, Trash2 } from 'lucide-react';
+import { ArrowLeft, Bookmark, BookmarkCheck, Clock, Eye, Maximize2, MessageSquare, Pencil, Send, Trash2 } from 'lucide-react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import Loader from '../components/Loader';
 import ErrorMessage from '../components/ErrorMessage';
+import Lightbox from '../components/Lightbox';
 import EmptyState from '../components/EmptyState';
 import Avatar from '../components/Avatar';
 import { CATEGORY_LABELS, STATUS_CLASSES, STATUS_LABELS, formatDateTime, formatRelativeDate, formatViews } from '../utils/format';
@@ -12,16 +13,31 @@ import { CATEGORY_LABELS, STATUS_CLASSES, STATUS_LABELS, formatDateTime, formatR
 // Галерея: крупный кадр и полоса миниатюр под ним.
 function Gallery({ images, title }) {
   const [active, setActive] = useState(0);
+  const [zoomed, setZoomed] = useState(false);
 
   if (images.length === 0) return null;
 
   return (
     <div className="space-y-2">
-      <img
-        src={images[active]}
-        alt={`${title} — изображение ${active + 1}`}
-        className="h-64 w-full object-cover sm:h-96"
-      />
+      {/* Кадр обрезан под общую высоту, поэтому по нажатию показываем
+          его целиком поверх страницы. */}
+      <button
+        type="button"
+        onClick={() => setZoomed(true)}
+        className="group relative block w-full cursor-zoom-in"
+        aria-label="Открыть изображение на весь экран"
+      >
+        <img
+          src={images[active]}
+          alt={`${title} — изображение ${active + 1}`}
+          className="h-64 w-full object-cover sm:h-96"
+        />
+        <span className="absolute bottom-3 right-3 rounded-full bg-black/50 p-2 text-white opacity-0 transition-opacity group-hover:opacity-100">
+          <Maximize2 className="h-4 w-4" aria-hidden="true" />
+        </span>
+      </button>
+
+      {zoomed && <Lightbox images={images} index={active} onClose={() => setZoomed(false)} />}
 
       {images.length > 1 && (
         <div className="flex flex-wrap gap-2 px-5 pt-2 sm:px-8">
