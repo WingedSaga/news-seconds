@@ -2,6 +2,7 @@ const express = require('express');
 const { body, param } = require('express-validator');
 const { validate } = require('../middleware/validate');
 const { authMiddleware, optionalAuth } = require('../middleware/authMiddleware');
+const { articleLimiter } = require('../middleware/rateLimiters');
 const {
   listArticles,
   featuredArticle,
@@ -24,6 +25,7 @@ router.get('/bookmarks/list', authMiddleware, listBookmarks);
 router.post(
   '/',
   authMiddleware,
+  articleLimiter,
   [
     body('title')
       .trim()

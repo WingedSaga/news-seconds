@@ -13,6 +13,8 @@ export default function AdminPending() {
   const [error, setError] = useState('');
   const [busyId, setBusyId] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [rejecting, setRejecting] = useState(null);
+  const [note, setNote] = useState('');
 
   const load = useCallback(() => {
     setLoading(true);
@@ -32,9 +34,14 @@ export default function AdminPending() {
     setBusyId(id);
     setError('');
     try {
-      await api.patch(`/admin/articles/${id}/status`, { status });
+      await api.patch(`/admin/articles/${id}/status`, {
+        status,
+        ...(status === 'rejected' ? { moderation_note: note } : {}),
+      });
       setItems((prev) => prev.filter((article) => article.id !== id));
       setPreview(null);
+      setRejecting(null);
+      setNote('');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -97,12 +104,38 @@ export default function AdminPending() {
                   type="button"
                   className="btn-danger"
                   disabled={busyId === article.id}
-                  onClick={() => decide(article.id, 'rejected')}
+                  onClick={() => {
+                    setRejecting(article.id);
+                    setNote('');
+                  }}
                 >
                   <X className="h-4 w-4" aria-hidden="true" />
                   Отклонить
                 </button>
               </div>
+
+              {rejecting === article.id && (
+                <div className="space-y-2 rounded-md border border-red-100 bg-red-50 p-3">
+                  <label className="text-sm font-semibold text-neutral-800" htmlFor={`note-${article.id}`}>
+                    Причина отклонения
+                  </label>
+                  <textarea
+                    id={`note-${article.id}`}
+                    rows={3}
+                    value={note}
+                    onChange={(event) => setNote(event.target.value)}
+                    maxLength={1000}
+                    className="field resize-y bg-white"
+                    placeholder="Объясните автору, что нужно исправить"
+                  />
+                  <div className="flex justify-end gap-2">
+                    <button type="button" className="btn-ghost text-xs" onClick={() => setRejecting(null)}>Отмена</button>
+                    <button type="button" className="btn-danger text-xs" disabled={busyId === article.id || note.trim().length < 3} onClick={() => decide(article.id, 'rejected')}>
+                      Подтвердить отклонение
+                    </button>
+                  </div>
+                </div>
+              )}
             </li>
           ))}
         </ul>
