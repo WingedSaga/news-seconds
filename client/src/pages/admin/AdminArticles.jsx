@@ -454,6 +454,7 @@ export default function AdminArticles() {
                   <option value="news">Новости</option>
                   <option value="joke">Анекдоты</option>
                   <option value="weather">Погода</option>
+                  <option value="other">Другое</option>
                 </select>
               </div>
 

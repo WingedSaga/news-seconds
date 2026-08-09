@@ -30,7 +30,7 @@ async function listArticles(req, res, next) {
       .order('created_at', { ascending: false })
       .range(from, to);
 
-    if (category && ['news', 'joke', 'weather'].includes(category)) {
+    if (category && ['news', 'joke', 'weather', 'other'].includes(category)) {
       query = query.eq('category', category);
     }
 

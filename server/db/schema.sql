@@ -28,7 +28,7 @@ create table if not exists public.articles (
   id         uuid primary key default gen_random_uuid(),
   title      text        not null,
   content    text        not null,
-  category   text        not null check (category in ('news', 'joke', 'weather')),
+  category   text        not null check (category in ('news', 'joke', 'weather', 'other')),
   -- Обложка: первая картинка галереи, дублируется для лент и карточек.
   image_url  text,
   -- Галерея, до пяти изображений.

@@ -2,6 +2,7 @@ export const CATEGORY_LABELS = {
   news: 'Новости',
   joke: 'Анекдоты',
   weather: 'Погода',
+  other: 'Другое',
 };
 
 export const STATUS_LABELS = {

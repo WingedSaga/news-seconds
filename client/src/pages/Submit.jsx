@@ -8,6 +8,7 @@ const CATEGORIES = [
   { value: 'news', label: 'Новости' },
   { value: 'joke', label: 'Анекдоты' },
   { value: 'weather', label: 'Погода' },
+  { value: 'other', label: 'Другое' },
 ];
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;

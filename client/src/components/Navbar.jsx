@@ -83,6 +83,28 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Главное действие сайта: лента живёт присланными новостями,
+                поэтому это единственная заливная кнопка в шапке. Гостя
+                ProtectedRoute отправит на вход. */}
+            <Link
+              to="/submit"
+              className="btn-primary hidden py-1.5 shadow-brand/25 sm:inline-flex"
+              title="Предложить новость"
+            >
+              <FilePlus2 className="h-4 w-4" aria-hidden="true" />
+              Предложить новость
+            </Link>
+
+            {/* На узком экране места на подпись нет, остаётся сам знак. */}
+            <Link
+              to="/submit"
+              className="btn-primary px-2.5 py-1.5 sm:hidden"
+              aria-label="Предложить новость"
+              title="Предложить новость"
+            >
+              <FilePlus2 className="h-5 w-5" aria-hidden="true" />
+            </Link>
+
             {/* Пожертвование — внешняя ссылка, поэтому обычный <a>. */}
             <a
               href={DONATION_URL}
@@ -121,10 +143,12 @@ export default function Navbar() {
               </>
             ) : (
               <>
-                <Link to="/login" className="btn-outline hidden py-1.5 sm:inline-flex">
+                {/* Вход и регистрация ушли на второй план: две заливные
+                    кнопки рядом спорят, и главная перестаёт читаться. */}
+                <Link to="/login" className="btn-ghost hidden py-1.5 sm:inline-flex">
                   Вход
                 </Link>
-                <Link to="/register" className="btn-primary hidden py-1.5 sm:inline-flex">
+                <Link to="/register" className="btn-outline hidden py-1.5 sm:inline-flex">
                   Регистрация
                 </Link>
               </>
@@ -149,7 +173,7 @@ export default function Navbar() {
           <div className="mx-auto flex max-w-7xl flex-col px-4 py-2">
             {isAuthenticated ? (
               <>
-                <Link to="/submit" className="flex items-center gap-2 py-3 text-sm font-semibold text-neutral-600">
+                <Link to="/submit" className="btn-primary my-2 w-full">
                   <FilePlus2 className="h-4 w-4" aria-hidden="true" />
                   Предложить новость
                 </Link>
@@ -196,6 +220,10 @@ export default function Navbar() {
             ) : (
               <>
                 {/* Гостю тоже нужны разделы сайта, а не только кнопки входа. */}
+                <Link to="/submit" className="btn-primary my-2 w-full">
+                  <FilePlus2 className="h-4 w-4" aria-hidden="true" />
+                  Предложить новость
+                </Link>
                 <Link to="/" className="flex items-center gap-2 py-3 text-sm font-semibold text-neutral-600">
                   <Newspaper className="h-4 w-4" aria-hidden="true" />
                   Лента
@@ -214,10 +242,10 @@ export default function Navbar() {
                   Поддержать
                 </a>
                 <div className="flex gap-2 py-3">
-                  <Link to="/login" className="btn-outline flex-1">
+                  <Link to="/login" className="btn-ghost flex-1 border border-neutral-300">
                     Вход
                   </Link>
-                  <Link to="/register" className="btn-primary flex-1">
+                  <Link to="/register" className="btn-outline flex-1">
                     Регистрация
                   </Link>
                 </div>

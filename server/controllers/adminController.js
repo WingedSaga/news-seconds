@@ -172,7 +172,7 @@ async function stats(_req, res, next) {
     const articles = allArticlesRes.data || [];
 
     const byStatus = { pending: 0, approved: 0, rejected: 0 };
-    const byCategory = { news: 0, joke: 0, weather: 0 };
+    const byCategory = { news: 0, joke: 0, weather: 0, other: 0 };
     let totalViews = 0;
 
     for (const article of articles) {

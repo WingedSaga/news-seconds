@@ -85,7 +85,7 @@ router.put(
     param('id').isUUID().withMessage('Некорректный идентификатор статьи'),
     body('title').optional().trim().isLength({ min: 5, max: 200 }).withMessage('Заголовок должен быть от 5 до 200 символов'),
     body('content').optional().trim().isLength({ min: 1, max: 20000 }).withMessage('Напишите текст новости — не длиннее 20000 символов'),
-    body('category').optional().isIn(['news', 'joke', 'weather']).withMessage('Недопустимая категория'),
+    body('category').optional().isIn(['news', 'joke', 'weather', 'other']).withMessage('Недопустимая категория'),
     body('status').optional().isIn(['pending', 'approved', 'rejected']).withMessage('Недопустимый статус статьи'),
   ],
   validate,

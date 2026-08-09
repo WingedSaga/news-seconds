@@ -34,8 +34,8 @@ router.post(
       .isLength({ min: 1, max: 20000 })
       .withMessage('Напишите текст новости — не длиннее 20000 символов'),
     body('category')
-      .isIn(['news', 'joke', 'weather'])
-      .withMessage('Выберите категорию: новости, анекдоты или погода'),
+      .isIn(['news', 'joke', 'weather', 'other'])
+      .withMessage('Выберите категорию: новости, анекдоты, погода или другое'),
     body('image_url')
       .optional({ values: 'falsy' })
       .trim()
