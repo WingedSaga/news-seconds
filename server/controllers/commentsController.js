@@ -1,14 +1,13 @@
 const { supabase } = require('../db/supabase');
 const settings = require('../services/settings');
-
-const COMMENT_SELECT = 'id, article_id, user_id, text, created_at, author:users (id, username, avatar_url)';
+const { commentSelect, repliesEnabled } = require('../db/schemaState');
 
 // GET /api/comments/article/:articleId
 async function listComments(req, res, next) {
   try {
     const { data, error } = await supabase
       .from('comments')
-      .select(COMMENT_SELECT)
+      .select(commentSelect())
       .eq('article_id', req.params.articleId)
       .order('created_at', { ascending: false });
 
@@ -26,7 +25,7 @@ async function createComment(req, res, next) {
       return res.status(403).json({ message: 'Комментарии на сайте отключены' });
     }
 
-    const { article_id, text } = req.body;
+    const { article_id, text, parent_id } = req.body;
 
     const { data: article, error: articleError } = await supabase
       .from('articles')
@@ -39,10 +38,29 @@ async function createComment(req, res, next) {
       return res.status(404).json({ message: 'Статья не найдена' });
     }
 
+    const payload = { article_id, user_id: req.user.id, text: String(text).trim() };
+
+    if (parent_id && repliesEnabled()) {
+      const { data: parent, error: parentError } = await supabase
+        .from('comments')
+        .select('id, article_id, parent_id')
+        .eq('id', parent_id)
+        .maybeSingle();
+
+      if (parentError) throw parentError;
+      if (!parent || parent.article_id !== article_id) {
+        return res.status(404).json({ message: 'Комментарий, на который вы отвечаете, не найден' });
+      }
+
+      // Ответ на ответ уходит в начало той же ветки: два уровня читаются,
+      // третий на телефоне превращается в лесенку из отступов.
+      payload.parent_id = parent.parent_id || parent.id;
+    }
+
     const { data, error } = await supabase
       .from('comments')
-      .insert({ article_id, user_id: req.user.id, text: String(text).trim() })
-      .select(COMMENT_SELECT)
+      .insert(payload)
+      .select(commentSelect())
       .single();
 
     if (error) throw error;

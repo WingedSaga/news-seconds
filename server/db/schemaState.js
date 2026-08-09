@@ -40,6 +40,30 @@ async function detectArticleColumns() {
   return available;
 }
 
+// Ответы на комментарии тоже пришли миграцией. Логика та же: пока
+// колонки нет, ветку не запрашиваем и не пишем, комментарии при этом
+// продолжают работать как плоский список.
+let commentParent = false;
+
+async function detectCommentColumns() {
+  const { error } = await supabase.from('comments').select('parent_id').limit(1);
+  commentParent = !error;
+
+  if (error) {
+    console.warn('[schema] колонка comments.parent_id недоступна, ответы на комментарии выключены');
+  }
+
+  return commentParent;
+}
+
+const BASE_COMMENT_COLUMNS = ['id', 'article_id', 'user_id', 'text', 'created_at'];
+
+function commentSelect() {
+  const columns = [...BASE_COMMENT_COLUMNS];
+  if (commentParent) columns.push('parent_id');
+  return `${columns.join(', ')}, ${AUTHOR_SELECT}`;
+}
+
 function articleSelect() {
   const columns = [
     ...BASE_ARTICLE_COLUMNS,
@@ -60,7 +84,10 @@ function pickWritableColumns(payload) {
 
 module.exports = {
   detectArticleColumns,
+  detectCommentColumns,
   articleSelect,
+  commentSelect,
   pickWritableColumns,
   isDetected: () => detected,
+  repliesEnabled: () => commentParent,
 };

@@ -10,6 +10,7 @@ const EXPECTED = [
   { table: 'settings', column: 'key', migration: '002_settings_and_admin.sql' },
   { table: 'admin_actions', column: 'action', migration: '003_admin_tools.sql' },
   { table: 'support_tickets', column: 'status', migration: '004_support.sql' },
+  { table: 'comments', column: 'parent_id', migration: '008_comment_replies.sql' },
 ];
 
 async function checkSchema() {

@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Bookmark, BookmarkCheck, Clock, Eye, Maximize2, MessageSquare, Pencil, Send, Trash2 } from 'lucide-react';
+import { ArrowLeft, Bookmark, BookmarkCheck, Clock, CornerDownRight, Eye, Maximize2, MessageSquare, Pencil, Reply, Send, Trash2 } from 'lucide-react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import Loader from '../components/Loader';
@@ -61,6 +61,85 @@ function Gallery({ images, title }) {
   );
 }
 
+// Один комментарий: и корневой, и ответ. Разница только в размере
+// аватара — отступ и линия слева уже говорят, что это ответ.
+function CommentBody({ comment, canDelete, onDelete, canReply, onReply, compact = false }) {
+  return (
+    <>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <Avatar user={comment.author} size={compact ? 'sm' : 'md'} />
+          <div>
+            <p className="text-sm font-semibold text-neutral-800">
+              {comment.author?.username || 'Аноним'}
+            </p>
+            <p className="text-xs text-neutral-400">{formatRelativeDate(comment.created_at)}</p>
+          </div>
+        </div>
+
+        {canDelete && (
+          <button
+            type="button"
+            onClick={onDelete}
+            className="rounded p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600"
+            aria-label="Удалить комментарий"
+          >
+            <Trash2 className="h-4 w-4" aria-hidden="true" />
+          </button>
+        )}
+      </div>
+
+      <p className="mt-3 whitespace-pre-wrap text-sm text-neutral-700">{comment.text}</p>
+
+      {canReply && (
+        <button
+          type="button"
+          onClick={onReply}
+          className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-500 transition-colors hover:text-brand"
+        >
+          <Reply className="h-3.5 w-3.5" aria-hidden="true" />
+          Ответить
+        </button>
+      )}
+    </>
+  );
+}
+
+// Форма ответа раскрывается под своим комментарием и всегда одна.
+function ReplyForm({ value, onChange, onSubmit, onCancel, sending, error, to }) {
+  return (
+    <form onSubmit={onSubmit} className="mt-3 space-y-2 rounded-lg bg-neutral-50 p-3">
+      <p className="flex items-center gap-1.5 text-xs text-neutral-500">
+        <CornerDownRight className="h-3.5 w-3.5" aria-hidden="true" />
+        Ответ пользователю <span className="font-semibold text-neutral-700">{to || 'Аноним'}</span>
+      </p>
+
+      <textarea
+        rows={2}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        maxLength={1000}
+        placeholder="Ваш ответ..."
+        aria-label="Текст ответа"
+        className="field resize-y bg-white"
+        autoFocus
+      />
+
+      <div className="flex items-center justify-end gap-2">
+        <button type="button" onClick={onCancel} className="btn-ghost py-1.5 text-xs">
+          Отмена
+        </button>
+        <button type="submit" className="btn-primary py-1.5 text-xs" disabled={sending}>
+          <Send className="h-3.5 w-3.5" aria-hidden="true" />
+          {sending ? 'Отправляем...' : 'Ответить'}
+        </button>
+      </div>
+
+      <ErrorMessage message={error} />
+    </form>
+  );
+}
+
 export default function Article() {
   const { id } = useParams();
   const { user, isAuthenticated, isAdmin } = useAuth();
@@ -76,6 +155,13 @@ export default function Article() {
   const [commentError, setCommentError] = useState('');
   const [sending, setSending] = useState(false);
   const [bookmarkBusy, setBookmarkBusy] = useState(false);
+
+  // Ответ пишется прямо под тем комментарием, на который отвечают,
+  // поэтому открытая форма всегда ровно одна.
+  const [replyTo, setReplyTo] = useState(null);
+  const [replyText, setReplyText] = useState('');
+  const [replyError, setReplyError] = useState('');
+  const [replySending, setReplySending] = useState(false);
 
   const loadArticle = useCallback(() => {
     setLoading(true);
@@ -118,24 +204,29 @@ export default function Article() {
     }
   };
 
+  // Общая отправка: отличие ответа от обычного комментария — только
+  // в parent_id, поэтому проверки и запрос держим в одном месте.
+  const sendComment = async (text, parentId) => {
+    const value = text.trim();
+    if (value.length < 2) throw new Error('Комментарий должен быть не короче 2 символов');
+    if (value.length > 1000) throw new Error('Комментарий не должен превышать 1000 символов');
+
+    const { data } = await api.post('/comments', {
+      article_id: id,
+      text: value,
+      ...(parentId ? { parent_id: parentId } : {}),
+    });
+
+    setComments((prev) => [data.item, ...prev]);
+  };
+
   const submitComment = async (event) => {
     event.preventDefault();
     setCommentError('');
-
-    const text = commentText.trim();
-    if (text.length < 2) {
-      setCommentError('Комментарий должен быть не короче 2 символов');
-      return;
-    }
-    if (text.length > 1000) {
-      setCommentError('Комментарий не должен превышать 1000 символов');
-      return;
-    }
-
     setSending(true);
+
     try {
-      const { data } = await api.post('/comments', { article_id: id, text });
-      setComments((prev) => [data.item, ...prev]);
+      await sendComment(commentText);
       setCommentText('');
     } catch (err) {
       setCommentError(err.message);
@@ -144,14 +235,100 @@ export default function Article() {
     }
   };
 
+  const submitReply = async (event, parentId) => {
+    event.preventDefault();
+    setReplyError('');
+    setReplySending(true);
+
+    try {
+      await sendComment(replyText, parentId);
+      setReplyText('');
+      setReplyTo(null);
+    } catch (err) {
+      setReplyError(err.message);
+    } finally {
+      setReplySending(false);
+    }
+  };
+
+  const openReply = (commentId) => {
+    setReplyTo(commentId);
+    setReplyText('');
+    setReplyError('');
+  };
+
   const removeComment = async (commentId) => {
     try {
       await api.delete(`/comments/${commentId}`);
-      setComments((prev) => prev.filter((comment) => comment.id !== commentId));
+      // В базе ответы уходят каскадом, поэтому убираем их и здесь —
+      // иначе ветка останется висеть без начала.
+      setComments((prev) => {
+        const doomed = new Set([commentId]);
+        let grew = true;
+
+        while (grew) {
+          grew = false;
+          for (const comment of prev) {
+            if (!doomed.has(comment.id) && doomed.has(comment.parent_id)) {
+              doomed.add(comment.id);
+              grew = true;
+            }
+          }
+        }
+
+        return prev.filter((comment) => !doomed.has(comment.id));
+      });
+      if (replyTo === commentId) setReplyTo(null);
     } catch (err) {
       setCommentError(err.message);
     }
   };
+
+  // Плоский список от сервера раскладываем в ветки: сверху свежие
+  // комментарии, ответы под своим — в порядке появления.
+  const threads = useMemo(() => {
+    const byId = new Map(comments.map((comment) => [comment.id, comment]));
+
+    // Ветку сворачиваем сами, не полагаясь на сервер: если ответ пришёл
+    // прикреплённым к другому ответу, он всё равно должен попасть под
+    // начало разговора, а не потеряться.
+    const rootOf = (comment) => {
+      let current = comment;
+      const seen = new Set([comment.id]);
+
+      while (current.parent_id && byId.has(current.parent_id)) {
+        const parent = byId.get(current.parent_id);
+        if (seen.has(parent.id)) break;
+        seen.add(parent.id);
+        current = parent;
+      }
+
+      return current;
+    };
+
+    const byRoot = new Map();
+    const roots = [];
+
+    for (const comment of comments) {
+      const root = rootOf(comment);
+      // Родитель мог быть удалён: тогда ответ показываем сам по себе,
+      // молча прятать чужой текст нельзя.
+      if (root.id === comment.id) {
+        roots.push(comment);
+        continue;
+      }
+
+      const list = byRoot.get(root.id) || [];
+      list.push(comment);
+      byRoot.set(root.id, list);
+    }
+
+    for (const list of byRoot.values()) {
+      list.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    }
+
+    return roots.map((root) => ({ root, replies: byRoot.get(root.id) || [] }));
+  }, [comments]);
 
   if (loading) return <Loader label="Загружаем статью..." />;
 
@@ -325,32 +502,57 @@ export default function Article() {
             icon={MessageSquare}
           />
         ) : (
-          <ul className="space-y-3">
-            {comments.map((comment) => (
-              <li key={comment.id} className="card p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <Avatar user={comment.author} size="md" />
-                    <div>
-                      <p className="text-sm font-semibold text-neutral-800">
-                        {comment.author?.username || 'Аноним'}
-                      </p>
-                      <p className="text-xs text-neutral-400">{formatRelativeDate(comment.created_at)}</p>
-                    </div>
-                  </div>
+          <ul className="space-y-4">
+            {threads.map(({ root, replies }) => (
+              <li key={root.id} className="card p-4">
+                <CommentBody
+                  comment={root}
+                  canDelete={isAdmin || root.user_id === user?.id}
+                  onDelete={() => removeComment(root.id)}
+                  canReply={isAuthenticated}
+                  onReply={() => openReply(root.id)}
+                />
 
-                  {(isAdmin || comment.user_id === user?.id) && (
-                    <button
-                      type="button"
-                      onClick={() => removeComment(comment.id)}
-                      className="rounded p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600"
-                      aria-label="Удалить комментарий"
-                    >
-                      <Trash2 className="h-4 w-4" aria-hidden="true" />
-                    </button>
-                  )}
-                </div>
-                <p className="mt-3 whitespace-pre-wrap text-sm text-neutral-700">{comment.text}</p>
+                {replyTo === root.id && (
+                  <ReplyForm
+                    value={replyText}
+                    onChange={setReplyText}
+                    onSubmit={(event) => submitReply(event, root.id)}
+                    onCancel={() => setReplyTo(null)}
+                    sending={replySending}
+                    error={replyError}
+                    to={root.author?.username}
+                  />
+                )}
+
+                {replies.length > 0 && (
+                  <ul className="mt-4 space-y-4 border-l-2 border-neutral-200 pl-4">
+                    {replies.map((reply) => (
+                      <li key={reply.id}>
+                        <CommentBody
+                          comment={reply}
+                          canDelete={isAdmin || reply.user_id === user?.id}
+                          onDelete={() => removeComment(reply.id)}
+                          canReply={isAuthenticated}
+                          onReply={() => openReply(reply.id)}
+                          compact
+                        />
+
+                        {replyTo === reply.id && (
+                          <ReplyForm
+                            value={replyText}
+                            onChange={setReplyText}
+                            onSubmit={(event) => submitReply(event, reply.id)}
+                            onCancel={() => setReplyTo(null)}
+                            sending={replySending}
+                            error={replyError}
+                            to={reply.author?.username}
+                          />
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </li>
             ))}
           </ul>

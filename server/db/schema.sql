@@ -52,10 +52,14 @@ create table if not exists public.comments (
   article_id uuid        not null references public.articles (id) on delete cascade,
   user_id    uuid        not null references public.users (id) on delete cascade,
   text       text        not null,
+  -- Ответ на другой комментарий. Вложенность одноуровневая: ответ на ответ
+  -- сервер прикрепляет к началу ветки.
+  parent_id  uuid        references public.comments (id) on delete cascade,
   created_at timestamptz not null default now()
 );
 
 create index if not exists comments_article_idx on public.comments (article_id, created_at desc);
+create index if not exists comments_parent_idx on public.comments (parent_id, created_at);
 
 -- Закладки ------------------------------------------------------------------
 create table if not exists public.bookmarks (

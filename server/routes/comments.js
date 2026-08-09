@@ -22,6 +22,10 @@ router.post(
       .trim()
       .isLength({ min: 2, max: 1000 })
       .withMessage('Комментарий должен быть от 2 до 1000 символов'),
+    body('parent_id')
+      .optional({ values: 'falsy' })
+      .isUUID()
+      .withMessage('Некорректный идентификатор комментария'),
   ],
   validate,
   createComment
