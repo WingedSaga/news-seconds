@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom';
 import {
   ClipboardList,
   FileStack,
+  Flag,
   Home,
   LayoutDashboard,
   LifeBuoy,
@@ -16,6 +17,7 @@ const LINKS = [
   { to: '/admin/pending', label: 'Модерация', icon: ClipboardList },
   { to: '/admin/articles', label: 'Все статьи', icon: FileStack },
   { to: '/admin/comments', label: 'Комментарии', icon: MessageSquare },
+  { to: '/admin/reports', label: 'Жалобы', icon: Flag },
   { to: '/admin/users', label: 'Пользователи', icon: Users },
   { to: '/admin/support', label: 'Поддержка', icon: LifeBuoy },
   { to: '/admin/logs', label: 'Журнал', icon: ScrollText },

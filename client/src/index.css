@@ -19,6 +19,7 @@
 
   body {
     @apply bg-paper text-ink antialiased;
+    background-image: linear-gradient(180deg, rgba(165, 214, 167, 0.13), transparent 18rem);
   }
 
   :focus-visible {
@@ -33,7 +34,7 @@
   }
 
   .btn-primary {
-    @apply btn bg-brand text-white shadow-sm hover:bg-brand-hover hover:shadow;
+    @apply btn bg-brand text-white shadow-sm shadow-brand/20 hover:bg-brand-hover hover:shadow-md;
   }
 
   .btn-outline {
@@ -52,6 +53,10 @@
      спорила со скруглёнными снимками и полем поиска. */
   .card {
     @apply rounded-xl border border-neutral-200 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)];
+  }
+
+  .feed-card {
+    @apply rounded-xl p-3 transition-[box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_10px_28px_rgba(27,94,32,0.09)];
   }
 
   /* Надзаголовок: мелкие прописные над заголовком, как рубрика в газете. */
@@ -92,8 +97,115 @@
   animation-play-state: paused;
 }
 
+/* Тема хранится на html, поэтому меняет и публичную часть, и админ-панель без
+   дублирования классов во всех компонентах. Зелёные акценты оставлены прежними. */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+:root[data-theme='dark'] body {
+  background-color: #111713;
+  background-image: radial-gradient(circle at top, rgba(67, 160, 71, 0.18), transparent 28rem);
+  color: #edf5ed;
+}
+
+:root[data-theme='dark'] .card,
+:root[data-theme='dark'] .field,
+:root[data-theme='dark'] input,
+:root[data-theme='dark'] textarea,
+:root[data-theme='dark'] select,
+:root[data-theme='dark'] footer,
+:root[data-theme='dark'] header,
+:root[data-theme='dark'] nav[aria-label='Меню'],
+:root[data-theme='dark'] .bg-white,
+:root[data-theme='dark'] .bg-white\/60,
+:root[data-theme='dark'] .bg-white\/95 {
+  background-color: #18221b !important;
+  border-color: #34473a !important;
+}
+
+:root[data-theme='dark'] .bg-neutral-50,
+:root[data-theme='dark'] .bg-neutral-100 {
+  background-color: #202c23 !important;
+}
+
+:root[data-theme='dark'] .text-ink,
+:root[data-theme='dark'] .text-neutral-900,
+:root[data-theme='dark'] .text-neutral-800,
+:root[data-theme='dark'] .text-neutral-700 {
+  color: #edf5ed !important;
+}
+
+:root[data-theme='dark'] .text-neutral-600,
+:root[data-theme='dark'] .text-neutral-500 {
+  color: #b9cbbd !important;
+}
+
+:root[data-theme='dark'] .text-neutral-400,
+:root[data-theme='dark'] .text-neutral-300,
+:root[data-theme='dark'] .text-neutral-200 {
+  color: #91a895 !important;
+}
+
+:root[data-theme='dark'] .border-neutral-100,
+:root[data-theme='dark'] .border-neutral-200,
+:root[data-theme='dark'] .border-neutral-300 {
+  border-color: #34473a !important;
+}
+
+:root[data-theme='dark'] .feed-card:hover {
+  background-color: #202c23;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+}
+
+:root[data-theme='dark'] .btn-ghost:hover {
+  background-color: #2b3a2e;
+}
+
+/* Рендеринг карточек вне экрана откладывается, а при экономии трафика и на слабом
+   железе отключаются дорогие анимации, blur и подъём элементов. */
+.feed-card {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 22rem;
+}
+
+.low-power * {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  scroll-behavior: auto !important;
+  transition-duration: 0.01ms !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.low-power .backdrop-blur,
+.low-power .backdrop-blur-sm {
+  backdrop-filter: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ticker-track {
     animation: none;
+  }
+}
+
+@media (max-width: 640px) {
+  body {
+    background-image: none;
+  }
+
+  .feed-card {
+    padding: 0.5rem;
+  }
+
+  .feed-card:hover {
+    transform: none;
   }
 }

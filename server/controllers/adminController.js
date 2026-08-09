@@ -250,10 +250,15 @@ async function listArticles(req, res, next) {
 async function updateArticleStatus(req, res, next) {
   try {
     const { status } = req.body;
+    const note = status === 'rejected' ? String(req.body.moderation_note || '').trim() : null;
+
+    if (status === 'rejected' && note.length < 3) {
+      return res.status(400).json({ message: 'Укажите причину отклонения — минимум 3 символа.' });
+    }
 
     const { data, error } = await supabase
       .from('articles')
-      .update({ status })
+      .update({ status, moderation_note: note, moderated_at: new Date().toISOString() })
       .eq('id', req.params.id)
       .select(articleSelect())
       .maybeSingle();
@@ -266,7 +271,7 @@ async function updateArticleStatus(req, res, next) {
     await audit.logAction(req.user, `article.${status}`, {
       targetType: 'article',
       targetId: data.id,
-      details: { title: data.title },
+      details: { title: data.title, moderation_note: note },
     });
 
     res.json({ item: data });
@@ -428,6 +433,22 @@ async function listComments(req, res, next) {
     if (term) query = query.ilike('text', `%${term}%`);
 
     const { data, error } = await query;
+    if (error) throw error;
+    res.json({ items: data || [] });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// GET /api/admin/reports — жалобы не удаляют контент автоматически: редактор видит
+// автора, объект и причину, а окончательное решение принимает в обычных разделах.
+async function listReports(_req, res, next) {
+  try {
+    const { data, error } = await supabase
+      .from('content_reports')
+      .select('id, target_type, target_id, reason, created_at, reporter:users (username)')
+      .order('created_at', { ascending: false })
+      .limit(200);
     if (error) throw error;
     res.json({ items: data || [] });
   } catch (err) {
@@ -723,6 +744,7 @@ module.exports = {
   updateTicketStatus,
   answerTicket,
   listComments,
+  listReports,
   deleteComment,
   bulkArticles,
   deleteUser,

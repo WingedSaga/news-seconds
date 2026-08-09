@@ -3,6 +3,7 @@ const rateLimit = require('express-rate-limit');
 const { body } = require('express-validator');
 const { validate } = require('../middleware/validate');
 const { authMiddleware } = require('../middleware/authMiddleware');
+const { registrationLimiter } = require('../middleware/rateLimiters');
 const {
   register,
   login,
@@ -25,7 +26,7 @@ const authLimiter = rateLimit({
 
 router.post(
   '/register',
-  authLimiter,
+  registrationLimiter,
   [
     body('username')
       .trim()

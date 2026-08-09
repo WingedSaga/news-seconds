@@ -8,6 +8,7 @@ const {
   updateTicketStatus,
   answerTicket,
   listComments,
+  listReports,
   deleteComment,
   bulkArticles,
   deleteUser,
@@ -74,6 +75,11 @@ router.patch(
     body('status')
       .isIn(['pending', 'approved', 'rejected'])
       .withMessage('Недопустимый статус статьи'),
+    body('moderation_note')
+      .optional({ values: 'falsy' })
+      .trim()
+      .isLength({ max: 1000 })
+      .withMessage('Причина отклонения не длиннее 1000 символов'),
   ],
   validate,
   updateArticleStatus
@@ -100,6 +106,7 @@ router.delete(
 );
 
 router.get('/comments', listComments);
+router.get('/reports', listReports);
 
 router.delete(
   '/comments/:id',

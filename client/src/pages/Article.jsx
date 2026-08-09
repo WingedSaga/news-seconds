@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Bookmark, BookmarkCheck, Clock, CornerDownRight, Eye, Maximize2, MessageSquare, Pencil, Reply, Send, Trash2 } from 'lucide-react';
+import { ArrowLeft, Bookmark, BookmarkCheck, Clock, CornerDownRight, Eye, Flag, Maximize2, MessageSquare, Pencil, Reply, Send, Trash2 } from 'lucide-react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import Loader from '../components/Loader';
@@ -63,7 +63,7 @@ function Gallery({ images, title }) {
 
 // Один комментарий: и корневой, и ответ. Разница только в размере
 // аватара — отступ и линия слева уже говорят, что это ответ.
-function CommentBody({ comment, canDelete, onDelete, canReply, onReply, compact = false }) {
+function CommentBody({ comment, canDelete, onDelete, canReply, onReply, onReport, compact = false }) {
   return (
     <>
       <div className="flex items-start justify-between gap-3">
@@ -92,14 +92,16 @@ function CommentBody({ comment, canDelete, onDelete, canReply, onReply, compact 
       <p className="mt-3 whitespace-pre-wrap text-sm text-neutral-700">{comment.text}</p>
 
       {canReply && (
-        <button
-          type="button"
-          onClick={onReply}
-          className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-500 transition-colors hover:text-brand"
-        >
-          <Reply className="h-3.5 w-3.5" aria-hidden="true" />
-          Ответить
-        </button>
+        <div className="mt-2 flex items-center gap-3">
+          <button type="button" onClick={onReply} className="inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-500 transition-colors hover:text-brand">
+            <Reply className="h-3.5 w-3.5" aria-hidden="true" />
+            Ответить
+          </button>
+          <button type="button" onClick={onReport} className="inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-400 transition-colors hover:text-red-600">
+            <Flag className="h-3.5 w-3.5" aria-hidden="true" />
+            Пожаловаться
+          </button>
+        </div>
       )}
     </>
   );
@@ -155,6 +157,7 @@ export default function Article() {
   const [commentError, setCommentError] = useState('');
   const [sending, setSending] = useState(false);
   const [bookmarkBusy, setBookmarkBusy] = useState(false);
+  const [reportMessage, setReportMessage] = useState('');
 
   // Ответ пишется прямо под тем комментарием, на который отвечают,
   // поэтому открытая форма всегда ровно одна.
@@ -281,6 +284,21 @@ export default function Article() {
       if (replyTo === commentId) setReplyTo(null);
     } catch (err) {
       setCommentError(err.message);
+    }
+  };
+
+  const report = async (targetType, targetId) => {
+    // Короткий запрос причины оставляет жалобу полезной для модератора, но не мешает
+    // быстро пожаловаться на очевидное нарушение.
+    const reason = window.prompt('Укажите причину жалобы (необязательно):');
+    if (reason === null) return;
+
+    setReportMessage('');
+    try {
+      const { data } = await api.post('/reports', { target_type: targetType, target_id: targetId, reason });
+      setReportMessage(data.message);
+    } catch (err) {
+      setReportMessage(err.message);
     }
   };
 
@@ -431,7 +449,11 @@ export default function Article() {
           <div className="prose-news whitespace-pre-wrap">{article.content}</div>
 
           {isAuthenticated && (
-            <div className="flex justify-end border-t border-neutral-200 pt-4">
+            <div className="flex flex-wrap justify-end gap-2 border-t border-neutral-200 pt-4">
+              <button type="button" onClick={() => report('article', article.id)} className="btn-ghost text-xs">
+                <Flag className="h-4 w-4" aria-hidden="true" />
+                Пожаловаться
+              </button>
               <button type="button" onClick={toggleBookmark} disabled={bookmarkBusy} className="btn-outline">
                 {bookmarked ? (
                   <>
@@ -447,6 +469,7 @@ export default function Article() {
               </button>
             </div>
           )}
+          {reportMessage && <p className="text-right text-xs text-neutral-500">{reportMessage}</p>}
         </div>
       </article>
 
@@ -511,6 +534,7 @@ export default function Article() {
                   onDelete={() => removeComment(root.id)}
                   canReply={isAuthenticated}
                   onReply={() => openReply(root.id)}
+                  onReport={() => report('comment', root.id)}
                 />
 
                 {replyTo === root.id && (
@@ -535,6 +559,7 @@ export default function Article() {
                           onDelete={() => removeComment(reply.id)}
                           canReply={isAuthenticated}
                           onReply={() => openReply(reply.id)}
+                          onReport={() => report('comment', reply.id)}
                           compact
                         />
 

@@ -38,6 +38,8 @@ create table if not exists public.articles (
   media_type text        check (media_type is null or media_type in ('audio', 'video')),
   author_id  uuid        references public.users (id) on delete set null,
   status     text        not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
+  moderation_note text,
+  moderated_at    timestamptz,
   views      integer     not null default 0,
   created_at timestamptz not null default now()
 );
@@ -60,6 +62,20 @@ create table if not exists public.comments (
 
 create index if not exists comments_article_idx on public.comments (article_id, created_at desc);
 create index if not exists comments_parent_idx on public.comments (parent_id, created_at);
+
+-- Жалобы сохраняются отдельно от самих материалов: проверка не изменяет публикацию,
+-- пока решение не примет модератор.
+create table if not exists public.content_reports (
+  id          uuid primary key default gen_random_uuid(),
+  reporter_id uuid not null references public.users (id) on delete cascade,
+  target_type text not null check (target_type in ('article', 'comment')),
+  target_id   uuid not null,
+  reason      text,
+  created_at  timestamptz not null default now(),
+  unique (reporter_id, target_type, target_id)
+);
+
+create index if not exists content_reports_created_at_idx on public.content_reports (created_at desc);
 
 -- Закладки ------------------------------------------------------------------
 create table if not exists public.bookmarks (
@@ -144,6 +160,7 @@ $$;
 alter table public.users     enable row level security;
 alter table public.articles  enable row level security;
 alter table public.comments  enable row level security;
+alter table public.content_reports enable row level security;
 alter table public.bookmarks enable row level security;
 alter table public.settings  enable row level security;
 alter table public.admin_actions enable row level security;

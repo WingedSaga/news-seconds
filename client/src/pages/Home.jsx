@@ -38,10 +38,11 @@ export default function Home() {
     <div className="mx-auto max-w-6xl">
       {/* Заголовок и поиск в одной строке: поле перестаёт висеть посреди
           пустоты и сразу читается как часть ленты. */}
-      <div className="mb-8 flex flex-col gap-4 border-b border-neutral-200 pb-5 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="font-serif text-2xl font-bold tracking-tight text-ink sm:text-3xl">
-          Лента
-        </h1>
+      <div className="mb-8 flex flex-col gap-4 border-b border-neutral-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="kicker mb-1">Последние публикации</p>
+          <h1 className="font-serif text-2xl font-bold tracking-tight text-ink sm:text-3xl">Лента</h1>
+        </div>
 
         <div className="relative sm:w-80">
           <Search
@@ -91,9 +92,11 @@ export default function Home() {
           <FeedItem article={lead} variant="hero" />
 
           {rest.length > 0 && (
-            <div className="grid gap-x-8 gap-y-10 border-t border-neutral-200 pt-10 md:grid-cols-2">
+            <div className="grid gap-x-6 gap-y-6 border-t border-neutral-200 pt-8 md:grid-cols-2">
               {rest.map((article) => (
-                <FeedItem key={article.id} article={article} />
+                <div key={article.id} className="feed-card">
+                  <FeedItem article={article} />
+                </div>
               ))}
             </div>
           )}

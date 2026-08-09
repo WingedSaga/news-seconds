@@ -2,6 +2,7 @@ const express = require('express');
 const { body, param } = require('express-validator');
 const { validate } = require('../middleware/validate');
 const { authMiddleware } = require('../middleware/authMiddleware');
+const { commentLimiter } = require('../middleware/rateLimiters');
 const { listComments, createComment, deleteComment } = require('../controllers/commentsController');
 
 const router = express.Router();
@@ -16,6 +17,7 @@ router.get(
 router.post(
   '/',
   authMiddleware,
+  commentLimiter,
   [
     body('article_id').isUUID().withMessage('Некорректный идентификатор статьи'),
     body('text')

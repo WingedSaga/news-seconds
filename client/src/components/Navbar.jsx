@@ -8,7 +8,9 @@ import {
   Heart,
   LogOut,
   Menu,
+  Moon,
   Newspaper,
+  Sun,
   User,
   X,
 } from 'lucide-react';
@@ -33,12 +35,21 @@ export default function Navbar() {
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [title, setTitle] = useState('НОВОСТИ СЕКУНДЫ');
+  const [theme, setTheme] = useState(() => {
+    const saved = localStorage.getItem('ns_theme');
+    return saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  });
   const location = useLocation();
   const navigate = useNavigate();
 
   useEffect(() => {
     setMenuOpen(false);
   }, [location.pathname]);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem('ns_theme', theme);
+  }, [theme]);
 
   useEffect(() => {
     let cancelled = false;
@@ -62,7 +73,7 @@ export default function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b-[3px] border-double border-ink bg-white">
+    <header className="sticky top-0 z-40 border-b border-neutral-200 bg-white/95 shadow-[0_2px_12px_rgba(16,24,40,0.05)] backdrop-blur">
       <div className="mx-auto max-w-7xl px-4">
         {/* Разрядка живёт на самих служебных надписях: на названии издания
             она бы перебила его собственную плотную посадку. */}
@@ -83,6 +94,15 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setTheme((current) => (current === 'dark' ? 'light' : 'dark'))}
+              className="btn-ghost hidden px-2.5 py-1.5 sm:inline-flex"
+              aria-label={theme === 'dark' ? 'Включить светлую тему' : 'Включить тёмную тему'}
+              title={theme === 'dark' ? 'Светлая тема' : 'Тёмная тема'}
+            >
+              {theme === 'dark' ? <Sun className="h-4 w-4" aria-hidden="true" /> : <Moon className="h-4 w-4" aria-hidden="true" />}
+            </button>
             {/* Главное действие сайта: лента живёт присланными новостями,
                 поэтому это единственная заливная кнопка в шапке. Гостя
                 ProtectedRoute отправит на вход. */}
@@ -202,6 +222,14 @@ export default function Navbar() {
                   <Heart className="h-4 w-4" aria-hidden="true" />
                   Поддержать
                 </a>
+                <button
+                  type="button"
+                  onClick={() => setTheme((current) => (current === 'dark' ? 'light' : 'dark'))}
+                  className="flex items-center gap-2 py-3 text-left text-sm font-semibold text-neutral-600"
+                >
+                  {theme === 'dark' ? <Sun className="h-4 w-4" aria-hidden="true" /> : <Moon className="h-4 w-4" aria-hidden="true" />}
+                  {theme === 'dark' ? 'Светлая тема' : 'Тёмная тема'}
+                </button>
                 {isAdmin && (
                   <Link to="/admin" className="flex items-center gap-2 py-3 text-sm font-semibold text-neutral-600">
                     <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
@@ -241,6 +269,14 @@ export default function Navbar() {
                   <Heart className="h-4 w-4" aria-hidden="true" />
                   Поддержать
                 </a>
+                <button
+                  type="button"
+                  onClick={() => setTheme((current) => (current === 'dark' ? 'light' : 'dark'))}
+                  className="flex items-center gap-2 py-3 text-left text-sm font-semibold text-neutral-600"
+                >
+                  {theme === 'dark' ? <Sun className="h-4 w-4" aria-hidden="true" /> : <Moon className="h-4 w-4" aria-hidden="true" />}
+                  {theme === 'dark' ? 'Светлая тема' : 'Тёмная тема'}
+                </button>
                 <div className="flex gap-2 py-3">
                   <Link to="/login" className="btn-ghost flex-1 border border-neutral-300">
                     Вход

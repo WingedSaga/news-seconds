@@ -71,6 +71,11 @@ export default function MyArticles() {
                   )}
                 </h2>
                 <p className="text-sm text-neutral-500">{excerpt(article.content, 120)}</p>
+                {article.status === 'rejected' && article.moderation_note && (
+                  <p className="rounded-md border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-800">
+                    <span className="font-semibold">Причина отклонения: </span>{article.moderation_note}
+                  </p>
+                )}
               </div>
 
               <div className="flex shrink-0 items-center gap-4 text-xs text-neutral-500">

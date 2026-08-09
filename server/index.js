@@ -45,6 +45,7 @@ app.use('/api/auth', require('./routes/auth'));
 
 app.use('/api/articles', optionalAuth, maintenanceGuard, require('./routes/articles'));
 app.use('/api/comments', optionalAuth, maintenanceGuard, require('./routes/comments'));
+app.use('/api/reports', optionalAuth, maintenanceGuard, require('./routes/reports'));
 app.use('/api/support', require('./routes/support'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/upload', require('./routes/upload'));
