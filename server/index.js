@@ -14,8 +14,16 @@ const app = express();
 app.set('trust proxy', 1);
 app.use(express.json({ limit: '1mb' }));
 
-const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
-  .split(',')
+const builtInAllowedOrigins = [
+  'http://localhost:5173',
+  'https://news-seconds.duckdns.org',
+  'https://wingedsaga.github.io',
+];
+
+const allowedOrigins = [
+  ...builtInAllowedOrigins,
+  ...(process.env.CORS_ORIGIN || '').split(','),
+]
   .map((origin) => origin.trim())
   .filter(Boolean);
 

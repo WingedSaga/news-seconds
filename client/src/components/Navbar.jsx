@@ -19,6 +19,7 @@ import { useAuth } from '../context/AuthContext';
 import Avatar from './Avatar';
 import BrandMark from './BrandMark';
 import { DONATION_URL } from '../constants';
+import { readStorage, writeStorage } from '../utils/storage';
 
 function todayLine() {
   return new Date().toLocaleDateString('ru-RU', {
@@ -36,7 +37,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [title, setTitle] = useState('НОВОСТИ СЕКУНДЫ');
   const [theme, setTheme] = useState(() => {
-    const saved = localStorage.getItem('ns_theme');
+    const saved = readStorage('ns_theme');
     return saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
   });
   const location = useLocation();
@@ -48,7 +49,7 @@ export default function Navbar() {
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
-    localStorage.setItem('ns_theme', theme);
+    writeStorage('ns_theme', theme);
   }, [theme]);
 
   useEffect(() => {

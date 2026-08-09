@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Check, Eye, ImagePlus, Paperclip, Pencil, Save, Trash2, X } from 'lucide-react';
+import { Check, Eye, ImagePlus, Paperclip, Pencil, Save, Star, Trash2, X } from 'lucide-react';
 import api from '../../api/axios';
 import Loader from '../../components/Loader';
 import ErrorMessage from '../../components/ErrorMessage';
@@ -223,6 +223,16 @@ export default function AdminArticles() {
     }
   };
 
+  const setFeatured = async (article) => {
+    setError('');
+    try {
+      const { data } = await api.patch(`/admin/articles/${article.id}/featured`);
+      setItems((previous) => previous.map((item) => ({ ...item, is_featured: item.id === data.item.id })));
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -309,6 +319,12 @@ export default function AdminArticles() {
               </div>
 
               <div className="flex flex-wrap gap-2 border-t border-neutral-100 pt-3">
+                {article.status === 'approved' && (
+                  <button type="button" onClick={() => setFeatured(article)} className="btn-ghost text-xs text-amber-700">
+                    <Star className={`h-4 w-4 ${article.is_featured ? 'fill-current' : ''}`} aria-hidden="true" />
+                    {article.is_featured ? 'Главная' : 'Сделать главной'}
+                  </button>
+                )}
                 <button type="button" onClick={() => startEdit(article)} className="btn-outline flex-1 text-xs">
                   <Pencil className="h-4 w-4" aria-hidden="true" />
                   Изменить
@@ -375,6 +391,17 @@ export default function AdminArticles() {
                   <td className="px-4 py-3 text-neutral-500">{formatRelativeDate(article.created_at)}</td>
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-1">
+                      {article.status === 'approved' && (
+                        <button
+                          type="button"
+                          onClick={() => setFeatured(article)}
+                          className={`rounded p-1.5 hover:bg-amber-50 hover:text-amber-700 ${article.is_featured ? 'text-amber-600' : 'text-neutral-500'}`}
+                          aria-label="Сделать главной новостью"
+                          title={article.is_featured ? 'Главная новость' : 'Сделать главной новостью'}
+                        >
+                          <Star className={`h-4 w-4 ${article.is_featured ? 'fill-current' : ''}`} aria-hidden="true" />
+                        </button>
+                      )}
                       <Link
                         to={`/article/${article.id}`}
                         className="rounded p-1.5 text-neutral-500 hover:bg-neutral-100 hover:text-brand"

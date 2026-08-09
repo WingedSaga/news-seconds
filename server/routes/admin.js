@@ -9,6 +9,8 @@ const {
   answerTicket,
   listComments,
   listReports,
+  updateReportStatus,
+  setFeaturedArticle,
   deleteComment,
   bulkArticles,
   deleteUser,
@@ -67,6 +69,7 @@ router.post(
 );
 
 router.get('/articles', listArticles);
+router.patch('/articles/:id/featured', [param('id').isUUID().withMessage('Некорректный идентификатор статьи')], validate, setFeaturedArticle);
 
 router.patch(
   '/articles/:id/status',
@@ -107,6 +110,7 @@ router.delete(
 
 router.get('/comments', listComments);
 router.get('/reports', listReports);
+router.patch('/reports/:id/status', [param('id').isUUID().withMessage('Некорректный идентификатор жалобы'), body('status').isIn(['new', 'resolved', 'dismissed']).withMessage('Некорректный статус')], validate, updateReportStatus);
 
 router.delete(
   '/comments/:id',

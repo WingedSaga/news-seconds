@@ -63,13 +63,12 @@ async function featuredArticle(_req, res, next) {
       .from('articles')
       .select(articleSelect())
       .eq('status', 'approved')
-      .eq('category', 'news')
       .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .limit(100);
 
     if (error) throw error;
-    res.json({ item: data || null });
+    const items = data || [];
+    res.json({ item: items.find((article) => article.is_featured) || items[0] || null });
   } catch (err) {
     next(err);
   }

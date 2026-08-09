@@ -1,10 +1,10 @@
 import axios from 'axios';
+import { readStorage, removeStorage } from '../utils/storage';
 
 export const TOKEN_KEY = 'ns_token';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000/api',
-  headers: { 'Content-Type': 'application/json' },
   // Бесплатный тариф хостинга усыпляет сервис после простоя: первый запрос
   // ждёт пробуждения контейнера, это заметно дольше обычного ответа.
   timeout: 60000,
@@ -12,7 +12,7 @@ const api = axios.create({
 
 // Подставляем JWT из localStorage в каждый запрос.
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem(TOKEN_KEY);
+  const token = readStorage(TOKEN_KEY);
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -27,8 +27,8 @@ api.interceptors.response.use(
       const { status, data } = error.response;
 
       // Токен протух или отозван — выходим и отправляем на страницу входа.
-      if (status === 401 && localStorage.getItem(TOKEN_KEY)) {
-        localStorage.removeItem(TOKEN_KEY);
+      if (status === 401 && readStorage(TOKEN_KEY)) {
+        removeStorage(TOKEN_KEY);
         window.dispatchEvent(new CustomEvent('ns:unauthorized'));
       }
 
@@ -37,7 +37,7 @@ api.interceptors.response.use(
     } else if (error.code === 'ECONNABORTED') {
       error.message = 'Превышено время ожидания ответа сервера';
     } else {
-      error.message = 'Сервер недоступен. Проверьте подключение к интернету.';
+      error.message = 'Не удалось связаться с сервером. Возможно, браузер заблокировал запрос к API.';
     }
 
     return Promise.reject(error);
