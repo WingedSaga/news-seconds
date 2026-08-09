@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import api, { TOKEN_KEY } from '../api/axios';
+import { readStorage, removeStorage, writeStorage } from '../utils/storage';
 
 const AuthContext = createContext(null);
 
@@ -8,13 +9,13 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   const logout = useCallback(() => {
-    localStorage.removeItem(TOKEN_KEY);
+    removeStorage(TOKEN_KEY);
     setUser(null);
   }, []);
 
   // Восстанавливаем сессию по токену из localStorage.
   useEffect(() => {
-    const token = localStorage.getItem(TOKEN_KEY);
+    const token = readStorage(TOKEN_KEY);
     if (!token) {
       setLoading(false);
       return;
@@ -27,7 +28,7 @@ export function AuthProvider({ children }) {
         if (!cancelled) setUser(data.user);
       })
       .catch(() => {
-        localStorage.removeItem(TOKEN_KEY);
+        removeStorage(TOKEN_KEY);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -47,7 +48,7 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (credentials) => {
     const { data } = await api.post('/auth/login', credentials);
-    localStorage.setItem(TOKEN_KEY, data.token);
+    writeStorage(TOKEN_KEY, data.token);
     setUser(data.user);
     return data.user;
   }, []);
@@ -57,7 +58,7 @@ export function AuthProvider({ children }) {
   const register = useCallback(async (payload) => {
     const { data } = await api.post('/auth/register', payload);
     if (data.token) {
-      localStorage.setItem(TOKEN_KEY, data.token);
+      writeStorage(TOKEN_KEY, data.token);
       setUser(data.user);
     }
     return data;
@@ -65,7 +66,7 @@ export function AuthProvider({ children }) {
 
   const verifyEmail = useCallback(async (token) => {
     const { data } = await api.post('/auth/verify-email', { token });
-    localStorage.setItem(TOKEN_KEY, data.token);
+    writeStorage(TOKEN_KEY, data.token);
     setUser(data.user);
     return data.user;
   }, []);
