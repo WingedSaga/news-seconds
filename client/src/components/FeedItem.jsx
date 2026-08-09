@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Clock, Eye, Images, Music, Video } from 'lucide-react';
+import { Clock, Eye, Images, Music, Play, Video } from 'lucide-react';
 import Avatar from './Avatar';
 import { excerpt, formatRelativeDate } from '../utils/format';
 
@@ -58,21 +58,62 @@ function Meta({ article, compact = false }) {
   );
 }
 
+// Материал без картинки, но с вложением, тоже должен что-то показывать:
+// пустой прямоугольник в ленте читается как поломка.
+function hasCover(article) {
+  return Boolean(article.image_urls?.[0] || article.image_url || article.media_url);
+}
+
 // Снимок с предсказуемой пропорцией: без неё высокие и широкие кадры
 // обрезаются по-разному и ряд карточек теряет ровную линию.
 function Cover({ article, ratio, rounded }) {
   const imageCount = article.image_urls?.length || (article.image_url ? 1 : 0);
   const cover = article.image_urls?.[0] || article.image_url;
-  if (!cover) return null;
+  const isVideo = !cover && article.media_url && article.media_type === 'video';
+  const isAudio = !cover && article.media_url && article.media_type !== 'video';
+
+  if (!cover && !isVideo && !isAudio) return null;
 
   return (
     <div className={`relative overflow-hidden bg-neutral-100 ${ratio} ${rounded}`}>
-      <img
-        src={cover}
-        alt=""
-        loading="lazy"
-        className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-      />
+      {cover && (
+        <img
+          src={cover}
+          alt=""
+          loading="lazy"
+          className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+        />
+      )}
+
+      {/* Кадр из самого ролика вместо обложки. #t=0.1 заставляет браузер
+          показать картинку, а не чёрный прямоугольник; metadata не тянет
+          весь файл ради превью. */}
+      {isVideo && (
+        <>
+          <video
+            src={`${article.media_url}#t=0.1`}
+            preload="metadata"
+            muted
+            playsInline
+            tabIndex={-1}
+            aria-hidden="true"
+            className="h-full w-full bg-black object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+          />
+          <span className="absolute inset-0 flex items-center justify-center">
+            <span className="rounded-full bg-black/55 p-4 text-white backdrop-blur-sm transition-transform group-hover:scale-110">
+              <Play className="h-6 w-6 fill-current" aria-hidden="true" />
+            </span>
+          </span>
+        </>
+      )}
+
+      {/* У звука кадра нет — рисуем спокойную заливку со значком. */}
+      {isAudio && (
+        <span className="flex h-full w-full items-center justify-center bg-brand-accent/40">
+          <Music className="h-10 w-10 text-brand" aria-hidden="true" />
+        </span>
+      )}
+
       <div className="absolute left-3 top-3">
         <Badges imageCount={imageCount} mediaType={article.media_type} />
       </div>
@@ -85,13 +126,22 @@ export default function FeedItem({ article, variant = 'card' }) {
 
   // Главный материал: на широком экране снимок и текст стоят рядом —
   // так заголовок виден сразу, без прокрутки. На узком всё в столбик.
+  // Без обложки колонку под неё не держим: пустая половина экрана
+  // выглядит так, будто картинка не загрузилась.
   if (variant === 'hero') {
+    const withCover = hasCover(article);
+
     return (
       <article className="group">
-        <Link to={`/article/${article.id}`} className="grid gap-5 lg:grid-cols-5 lg:gap-8">
-          <div className="lg:col-span-3">
-            <Cover article={article} ratio="aspect-[16/10]" rounded="rounded-2xl" />
-          </div>
+        <Link
+          to={`/article/${article.id}`}
+          className={`grid gap-5 lg:gap-8 ${withCover ? 'lg:grid-cols-5' : ''}`}
+        >
+          {withCover && (
+            <div className="lg:col-span-3">
+              <Cover article={article} ratio="aspect-[16/10]" rounded="rounded-2xl" />
+            </div>
+          )}
 
           <div className="flex flex-col justify-center gap-3 lg:col-span-2">
             <h2 className="font-serif text-[1.75rem] font-bold leading-[1.15] text-ink transition-colors group-hover:text-brand sm:text-4xl">
