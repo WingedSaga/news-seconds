@@ -446,11 +446,50 @@ async function listReports(_req, res, next) {
   try {
     const { data, error } = await supabase
       .from('content_reports')
-      .select('id, target_type, target_id, reason, created_at, reporter:users (username)')
+      .select('id, target_type, target_id, reason, status, created_at, resolved_at, reporter:users (username)')
       .order('created_at', { ascending: false })
       .limit(200);
     if (error) throw error;
     res.json({ items: data || [] });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function updateReportStatus(req, res, next) {
+  try {
+    const { status } = req.body;
+    const { data, error } = await supabase
+      .from('content_reports')
+      .update({ status, resolved_at: status === 'new' ? null : new Date().toISOString() })
+      .eq('id', req.params.id)
+      .select('id, target_type, target_id, reason, status, created_at, resolved_at, reporter:users (username)')
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) return res.status(404).json({ message: 'Жалоба не найдена' });
+    await audit.logAction(req.user, 'report.status', { targetType: 'report', targetId: data.id, details: { status } });
+    res.json({ item: data });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function setFeaturedArticle(req, res, next) {
+  try {
+    const { data: article, error: findError } = await supabase
+      .from('articles')
+      .select('id, title, status')
+      .eq('id', req.params.id)
+      .maybeSingle();
+    if (findError) throw findError;
+    if (!article) return res.status(404).json({ message: 'Статья не найдена' });
+    if (article.status !== 'approved') return res.status(400).json({ message: 'Главной можно сделать только одобренную статью' });
+    const { error: clearError } = await supabase.from('articles').update({ is_featured: false }).eq('is_featured', true);
+    if (clearError) throw clearError;
+    const { data, error } = await supabase.from('articles').update({ is_featured: true }).eq('id', article.id).select(articleSelect()).single();
+    if (error) throw error;
+    await audit.logAction(req.user, 'article.featured', { targetType: 'article', targetId: data.id, details: { title: data.title } });
+    res.json({ item: data });
   } catch (err) {
     next(err);
   }
@@ -745,6 +784,8 @@ module.exports = {
   answerTicket,
   listComments,
   listReports,
+  updateReportStatus,
+  setFeaturedArticle,
   deleteComment,
   bulkArticles,
   deleteUser,

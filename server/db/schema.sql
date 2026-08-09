@@ -38,6 +38,7 @@ create table if not exists public.articles (
   media_type text        check (media_type is null or media_type in ('audio', 'video')),
   author_id  uuid        references public.users (id) on delete set null,
   status     text        not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
+  is_featured boolean     not null default false,
   moderation_note text,
   moderated_at    timestamptz,
   views      integer     not null default 0,
@@ -47,6 +48,7 @@ create table if not exists public.articles (
 create index if not exists articles_status_created_at_idx on public.articles (status, created_at desc);
 create index if not exists articles_category_idx on public.articles (category);
 create index if not exists articles_author_idx on public.articles (author_id);
+create index if not exists articles_featured_idx on public.articles (is_featured desc, created_at desc);
 
 -- Комментарии ---------------------------------------------------------------
 create table if not exists public.comments (
@@ -71,11 +73,14 @@ create table if not exists public.content_reports (
   target_type text not null check (target_type in ('article', 'comment')),
   target_id   uuid not null,
   reason      text,
+  status      text not null default 'new' check (status in ('new', 'resolved', 'dismissed')),
+  resolved_at timestamptz,
   created_at  timestamptz not null default now(),
   unique (reporter_id, target_type, target_id)
 );
 
 create index if not exists content_reports_created_at_idx on public.content_reports (created_at desc);
+create index if not exists content_reports_status_created_at_idx on public.content_reports (status, created_at desc);
 
 -- Закладки ------------------------------------------------------------------
 create table if not exists public.bookmarks (

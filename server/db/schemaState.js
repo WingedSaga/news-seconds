@@ -4,7 +4,7 @@ const { supabase } = require('./supabase');
 // запрашивать их нельзя — PostgREST отвечает ошибкой на весь запрос,
 // и лента падает целиком. Поэтому один раз проверяем, что есть,
 // и дальше собираем список полей по факту.
-const OPTIONAL_ARTICLE_COLUMNS = ['image_urls', 'media_url', 'media_type', 'moderation_note', 'moderated_at'];
+const OPTIONAL_ARTICLE_COLUMNS = ['image_urls', 'media_url', 'media_type', 'moderation_note', 'moderated_at', 'is_featured'];
 
 const BASE_ARTICLE_COLUMNS = [
   'id',
