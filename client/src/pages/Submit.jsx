@@ -13,7 +13,9 @@ const CATEGORIES = [
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const MAX_IMAGES = 5;
-const MAX_MEDIA_BYTES = 50 * 1024 * 1024;
+// Принимаем до 100 МБ. Всё, что не влезает в хранилище, сервер пережимает
+// сам, поэтому запрещать здесь больше нечего.
+const MAX_MEDIA_BYTES = 100 * 1024 * 1024;
 const MEDIA_TYPES = ['audio/mpeg', 'audio/mp3', 'video/mp4'];
 
 export default function Submit() {
@@ -23,6 +25,8 @@ export default function Submit() {
   const [images, setImages] = useState([]);
   const [media, setMedia] = useState(null);
   const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [mediaProgress, setMediaProgress] = useState(0);
+  const [mediaNote, setMediaNote] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
   const [error, setError] = useState('');
   const [uploading, setUploading] = useState(false);
@@ -109,7 +113,7 @@ export default function Submit() {
       return;
     }
     if (file.size > MAX_MEDIA_BYTES) {
-      setError('Размер файла не должен превышать 50 МБ');
+      setError('Размер файла не должен превышать 100 МБ');
       return;
     }
 
@@ -117,15 +121,27 @@ export default function Submit() {
     formData.append('media', file);
 
     setUploadingMedia(true);
+    setMediaProgress(0);
+    setMediaNote('');
+
     try {
       const { data } = await api.post('/upload/media', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
+        // Сотня мегабайт с домашнего интернета плюс сжатие на сервере
+        // не укладываются в обычную минуту ожидания.
+        timeout: 30 * 60 * 1000,
+        onUploadProgress: (progress) => {
+          if (!progress.total) return;
+          setMediaProgress(Math.round((progress.loaded / progress.total) * 100));
+        },
       });
       setMedia({ url: data.url, type: data.media_type, name: file.name });
+      if (data.note) setMediaNote(data.note);
     } catch (err) {
       setError(err.message);
     } finally {
       setUploadingMedia(false);
+      setMediaProgress(0);
       event.target.value = '';
     }
   };
@@ -312,9 +328,11 @@ export default function Submit() {
               ) : (
                 <audio src={media.url} controls className="w-full" />
               )}
+
+              {mediaNote && <p className="text-xs text-brand">{mediaNote}</p>}
             </div>
           ) : (
-            <label className="btn-outline w-fit cursor-pointer">
+            <label className={`btn-outline w-fit ${uploadingMedia ? 'cursor-wait' : 'cursor-pointer'}`}>
               <Paperclip className="h-4 w-4" aria-hidden="true" />
               {uploadingMedia ? 'Загружаем...' : 'Прикрепить файл'}
               <input
@@ -326,8 +344,28 @@ export default function Submit() {
               />
             </label>
           )}
+
+          {/* Стомегабайтный ролик уходит минутами: без полосы кажется,
+              что страница зависла. */}
+          {uploadingMedia && (
+            <div className="space-y-1">
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-neutral-200">
+                <div
+                  className="h-full rounded-full bg-brand transition-[width] duration-300"
+                  style={{ width: `${mediaProgress}%` }}
+                />
+              </div>
+              <p className="text-xs text-neutral-500">
+                {mediaProgress < 100
+                  ? `Отправлено ${mediaProgress}%`
+                  : 'Файл на сервере, идёт обработка — это может занять несколько минут'}
+              </p>
+            </div>
+          )}
+
           <p className="text-xs text-neutral-400">
-            MP3 или MP4, до 50 МБ. Загрузка большого файла занимает время — дождитесь окончания.
+            MP3 или MP4, до 100 МБ. Файл тяжелее 50 МБ сервер сожмёт сам — это занимает время,
+            дождитесь окончания.
           </p>
         </div>
 

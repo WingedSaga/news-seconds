@@ -1,7 +1,14 @@
+const crypto = require('crypto');
+const os = require('os');
+const path = require('path');
 const express = require('express');
 const multer = require('multer');
 const { authMiddleware } = require('../middleware/authMiddleware');
-const { uploadImage, uploadMedia } = require('../controllers/uploadController');
+const {
+  uploadImage,
+  uploadMedia,
+  MEDIA_UPLOAD_LIMIT_BYTES,
+} = require('../controllers/uploadController');
 
 const router = express.Router();
 
@@ -31,12 +38,19 @@ router.post(
 );
 
 // Аудио и видео заметно тяжелее картинок, поэтому лимит отдельный.
-// 50 МБ — предел одного файла в Supabase Storage на бесплатном тарифе.
-const MEDIA_LIMIT_BYTES = 50 * 1024 * 1024;
-
+// Принимаем до 100 МБ; всё, что не влезает в хранилище, сервер пережимает
+// сам — см. services/mediaCompressor.
+// Держать сотню мегабайт в памяти на Raspberry Pi расточительно, да и
+// ffmpeg всё равно работает с файлом на диске.
 const uploadMediaFile = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: MEDIA_LIMIT_BYTES },
+  storage: multer.diskStorage({
+    destination: os.tmpdir(),
+    filename: (_req, file, cb) => {
+      const extension = path.extname(file.originalname).slice(0, 10) || '.bin';
+      cb(null, `ns-upload-${Date.now()}-${crypto.randomUUID()}${extension}`);
+    },
+  }),
+  limits: { fileSize: MEDIA_UPLOAD_LIMIT_BYTES },
   fileFilter: (_req, file, cb) => {
     if (!['audio/mpeg', 'audio/mp3', 'video/mp4'].includes(file.mimetype)) {
       return cb(new Error('Допустимы только файлы MP3 и MP4'));
@@ -52,7 +66,7 @@ router.post(
     uploadMediaFile.single('media')(req, res, (err) => {
       if (!err) return next();
       const message =
-        err.code === 'LIMIT_FILE_SIZE' ? 'Файл больше 50 МБ' : err.message || 'Ошибка загрузки файла';
+        err.code === 'LIMIT_FILE_SIZE' ? 'Файл больше 100 МБ' : err.message || 'Ошибка загрузки файла';
       return res.status(400).json({ message });
     });
   },
