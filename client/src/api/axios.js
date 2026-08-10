@@ -29,7 +29,11 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     const requestConfig = error.config;
-    if (!error.response && requestConfig && !requestConfig.__usedFallback && requestConfig.baseURL !== FALLBACK_API_URL) {
+    // Workers.dev иногда отвечает 52x, хотя сам API на Raspberry Pi жив.
+    // В таком случае повторяем запрос через прямой HTTPS-туннель, как и при
+    // сетевой ошибке браузера. Ошибки 4xx не повторяем: это уже ответ API.
+    const shouldUseFallback = !error.response || error.response.status >= 500;
+    if (shouldUseFallback && requestConfig && !requestConfig.__usedFallback && requestConfig.baseURL !== FALLBACK_API_URL) {
       return api({
         ...requestConfig,
         baseURL: FALLBACK_API_URL,

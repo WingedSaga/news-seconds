@@ -1,4 +1,4 @@
-import { Loader2, Plus, Search, X } from 'lucide-react';
+import { Loader2, MessageCircle, Plus, Search, X } from 'lucide-react';
 import useArticleFeed from '../hooks/useArticleFeed';
 import FeedItem from '../components/FeedItem';
 import ErrorMessage from '../components/ErrorMessage';
@@ -71,6 +71,14 @@ export default function Home() {
           )}
         </div>
       </div>
+
+      <a
+        href="https://wingedsaga.github.io/Messages-seconds/"
+        className="mb-5 flex items-center justify-center gap-2 rounded-2xl border border-brand/25 bg-brand-soft px-4 py-3 text-sm font-semibold text-brand-dark sm:hidden"
+      >
+        <MessageCircle className="h-5 w-5" aria-hidden="true" />
+        Открыть Сообщения секунды
+      </a>
 
       <ErrorMessage message={error} onRetry={retry} />
 
