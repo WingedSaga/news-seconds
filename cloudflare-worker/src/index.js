@@ -9,6 +9,7 @@ function corsHeaders(request, env) {
 
   headers.set('Access-Control-Allow-Methods', 'GET,HEAD,POST,PUT,PATCH,DELETE,OPTIONS');
   headers.set('Access-Control-Allow-Headers', 'Authorization,Content-Type');
+  headers.set('Access-Control-Allow-Credentials', 'false');
   headers.set('Access-Control-Max-Age', '86400');
   return headers;
 }
