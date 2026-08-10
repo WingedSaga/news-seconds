@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
+import Avatar from './Avatar';
 import BrandMark from './BrandMark';
 import { DONATION_URL } from '../constants';
 import { readStorage, writeStorage } from '../utils/storage';
