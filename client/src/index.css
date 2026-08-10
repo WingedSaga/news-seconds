@@ -7,6 +7,7 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    text-rendering: optimizeLegibility;
   }
 
   /* Ничто не должно двигать страницу вбок: всё, что шире экрана —
@@ -19,7 +20,9 @@
 
   body {
     @apply bg-paper text-ink antialiased;
-    background-image: linear-gradient(180deg, rgba(165, 214, 167, 0.13), transparent 18rem);
+    font-feature-settings: 'kern' 1, 'liga' 1;
+    background-image: radial-gradient(circle at 82% -8%, rgba(165, 214, 167, 0.22), transparent 24rem),
+      linear-gradient(180deg, rgba(165, 214, 167, 0.1), transparent 18rem);
   }
 
   :focus-visible {
@@ -29,8 +32,8 @@
 
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold
-      transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold
+      transition-[background-color,border-color,color,box-shadow,transform] duration-150 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60;
   }
 
   .btn-primary {
@@ -52,11 +55,11 @@
   /* Карточка: мягкая рамка и почти незаметная тень. Резкая линейка
      спорила со скруглёнными снимками и полем поиска. */
   .card {
-    @apply rounded-xl border border-neutral-200 bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)];
+    @apply rounded-2xl border border-neutral-200/90 bg-white shadow-[0_1px_3px_rgba(16,24,40,0.05)];
   }
 
   .feed-card {
-    @apply rounded-xl p-3 transition-[box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_10px_28px_rgba(27,94,32,0.09)];
+    @apply rounded-2xl p-3 transition-[box-shadow,transform,background-color] duration-150 hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_8px_22px_rgba(27,94,32,0.08)];
   }
 
   /* Надзаголовок: мелкие прописные над заголовком, как рубрика в газете. */
@@ -66,7 +69,7 @@
 
   /* Читаемая колонка основного текста с засечками. */
   .prose-news {
-    @apply font-serif text-[17px] leading-[1.75] text-ink;
+    @apply font-serif text-[17px] leading-[1.78] text-ink;
   }
 
   .field {
@@ -78,7 +81,8 @@
      вразрядку читались тяжело и спорили с названием издания. */
   .section-title {
     @apply flex items-baseline justify-between gap-4 border-b border-neutral-200 pb-3 font-serif
-      text-2xl font-bold tracking-tight text-ink sm:text-3xl;
+      text-2xl font-semibold tracking-[-0.025em] text-ink sm:text-3xl;
+    text-wrap: balance;
   }
 
   .pill {
@@ -199,6 +203,11 @@
 @media (max-width: 640px) {
   body {
     background-image: none;
+  }
+
+  .backdrop-blur,
+  .backdrop-blur-sm {
+    backdrop-filter: none;
   }
 
   .feed-card {
