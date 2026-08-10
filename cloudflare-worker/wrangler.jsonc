@@ -1,0 +1,11 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "news-seconds-api-proxy",
+  "main": "src/index.js",
+  "compatibility_date": "2026-08-10",
+  "workers_dev": true,
+  "vars": {
+    "UPSTREAM_ORIGIN": "https://wingedsaga.tail7db1c9.ts.net",
+    "ALLOWED_ORIGIN": "https://news-seconds.duckdns.org"
+  }
+}
