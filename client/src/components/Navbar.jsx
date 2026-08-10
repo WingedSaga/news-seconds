@@ -85,7 +85,7 @@ export default function Navbar() {
 
           </div>
 
-          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+          <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
             <a
               href="https://wingedsaga.github.io/Messages-seconds/"
               className="btn-ghost hidden gap-0 px-2.5 py-1.5 text-brand md:inline-flex"
@@ -144,8 +144,7 @@ export default function Navbar() {
                 </Link>
                 <Link
                   to="/profile"
-                  className="hidden items-center gap-2 rounded-lg px-2 py-1 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-100 md:flex"
-                  title="Профиль"
+                  className="btn-ghost hidden items-center gap-2 rounded-lg px-2 py-1 md:flex"
                 >
                   <Avatar user={user} size="sm" />
                   <span className="max-w-[120px] truncate normal-case tracking-normal">
@@ -177,7 +176,7 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => setMenuOpen((open) => !open)}
-              className="btn-ghost px-2.5"
+              className="btn-ghost ml-1 shrink-0 px-2.5"
               aria-expanded={menuOpen}
               aria-label={menuOpen ? 'Закрыть меню' : 'Открыть меню'}
             >
