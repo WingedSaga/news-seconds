@@ -26,7 +26,7 @@ export default function Footer() {
           <Link to="/support" className="hover:text-brand">
             Поддержка
           </Link>
-          <a href="https://messages-seconds.duckdns.org" className="inline-flex items-center gap-1.5 font-semibold text-brand hover:text-brand-hover">
+          <a href="https://wingedsaga.github.io/Messages-seconds/" className="inline-flex items-center gap-1.5 font-semibold text-brand hover:text-brand-hover">
             <MessageCircle className="h-4 w-4" aria-hidden="true" />
             Сообщения
           </a>

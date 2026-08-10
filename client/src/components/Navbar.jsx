@@ -97,7 +97,7 @@ export default function Navbar() {
 
           <div className="flex items-center gap-2">
             <a
-              href="https://messages-seconds.duckdns.org"
+              href="https://wingedsaga.github.io/Messages-seconds/"
               className="btn-ghost hidden py-1.5 text-brand lg:inline-flex"
               title="Сообщения секунды"
             >
@@ -223,7 +223,7 @@ export default function Navbar() {
                   <LifeBuoy className="h-4 w-4" aria-hidden="true" />
                   Поддержка
                 </Link>
-                <a href="https://messages-seconds.duckdns.org" className="flex items-center gap-2 py-3 text-sm font-semibold text-brand">
+                <a href="https://wingedsaga.github.io/Messages-seconds/" className="flex items-center gap-2 py-3 text-sm font-semibold text-brand">
                   <MessageCircle className="h-4 w-4" aria-hidden="true" />
                   Сообщения
                 </a>
@@ -274,7 +274,7 @@ export default function Navbar() {
                   <LifeBuoy className="h-4 w-4" aria-hidden="true" />
                   Поддержка
                 </Link>
-                <a href="https://messages-seconds.duckdns.org" className="flex items-center gap-2 py-3 text-sm font-semibold text-brand">
+                <a href="https://wingedsaga.github.io/Messages-seconds/" className="flex items-center gap-2 py-3 text-sm font-semibold text-brand">
                   <MessageCircle className="h-4 w-4" aria-hidden="true" />
                   Сообщения
                 </a>
