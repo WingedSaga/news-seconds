@@ -144,7 +144,7 @@ export default function Navbar() {
                 </Link>
                 <Link
                   to="/profile"
-                  className="hidden"
+                  className="hidden items-center gap-2 rounded-lg px-2 py-1 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-100 md:flex"
                   title="Профиль"
                 >
                   <Avatar user={user} size="sm" />
