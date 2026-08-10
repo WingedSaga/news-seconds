@@ -37,9 +37,9 @@ jobs:
 
       - name: Сборка
         env:
-          # Временно идём напрямую через исходящий туннель Raspberry Pi: он доступен iOS
-          # надёжнее, чем промежуточный Workers.dev маршрут.
-          VITE_API_URL: ${{ vars.PUBLIC_API_URL || 'https://adopted-cart-cowboy-diet.trycloudflare.com/api' }}
+          # Основной путь проходит через Cloudflare Worker: он устойчивее в
+          # мобильных браузерах. Прямой туннель Raspberry Pi остаётся запасным.
+          VITE_API_URL: ${{ vars.PUBLIC_API_URL || 'https://news-seconds-api-proxy.news-seconds-api.workers.dev/api' }}
           # Сайт живёт на своём домене (client/public/CNAME), то есть в корне.
           # Для подпапки /<имя-репозитория>/ здесь была бы другая строка.
           VITE_BASE_PATH: /
