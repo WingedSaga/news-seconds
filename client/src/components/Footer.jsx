@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart } from 'lucide-react';
+import { Heart, MessageCircle } from 'lucide-react';
 import BrandMark from './BrandMark';
 import Calculator from './Calculator';
 import { DONATION_URL } from '../constants';
@@ -26,6 +26,10 @@ export default function Footer() {
           <Link to="/support" className="hover:text-brand">
             Поддержка
           </Link>
+          <a href="https://messages-seconds.duckdns.org" className="inline-flex items-center gap-1.5 font-semibold text-brand hover:text-brand-hover">
+            <MessageCircle className="h-4 w-4" aria-hidden="true" />
+            Сообщения
+          </a>
           {/* Внешняя ссылка: открываем в новой вкладке, чтобы не уводить
               читателя с сайта. */}
           <a

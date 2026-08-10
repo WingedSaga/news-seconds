@@ -9,6 +9,7 @@ import {
   LogOut,
   Menu,
   Moon,
+  MessageCircle,
   Newspaper,
   Sun,
   User,
@@ -95,6 +96,14 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-2">
+            <a
+              href="https://messages-seconds.duckdns.org"
+              className="btn-ghost hidden py-1.5 text-brand lg:inline-flex"
+              title="Сообщения секунды"
+            >
+              <MessageCircle className="h-4 w-4" aria-hidden="true" />
+              Сообщения
+            </a>
             <button
               type="button"
               onClick={() => setTheme((current) => (current === 'dark' ? 'light' : 'dark'))}
@@ -214,6 +223,10 @@ export default function Navbar() {
                   <LifeBuoy className="h-4 w-4" aria-hidden="true" />
                   Поддержка
                 </Link>
+                <a href="https://messages-seconds.duckdns.org" className="flex items-center gap-2 py-3 text-sm font-semibold text-brand">
+                  <MessageCircle className="h-4 w-4" aria-hidden="true" />
+                  Сообщения
+                </a>
                 <a
                   href={DONATION_URL}
                   target="_blank"
@@ -261,6 +274,10 @@ export default function Navbar() {
                   <LifeBuoy className="h-4 w-4" aria-hidden="true" />
                   Поддержка
                 </Link>
+                <a href="https://messages-seconds.duckdns.org" className="flex items-center gap-2 py-3 text-sm font-semibold text-brand">
+                  <MessageCircle className="h-4 w-4" aria-hidden="true" />
+                  Сообщения
+                </a>
                 <a
                   href={DONATION_URL}
                   target="_blank"
