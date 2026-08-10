@@ -5,6 +5,7 @@ function corsHeaders(request) {
   const headers = new Headers({
     'Access-Control-Allow-Methods': 'GET,HEAD,POST,PUT,PATCH,DELETE,OPTIONS',
     'Access-Control-Allow-Headers': 'Authorization,Content-Type',
+    'Access-Control-Allow-Credentials': 'false',
     'Access-Control-Max-Age': '86400',
   });
 
