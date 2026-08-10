@@ -17,19 +17,9 @@ import {
 } from 'lucide-react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
-import Avatar from './Avatar';
 import BrandMark from './BrandMark';
 import { DONATION_URL } from '../constants';
 import { readStorage, writeStorage } from '../utils/storage';
-
-function todayLine() {
-  return new Date().toLocaleDateString('ru-RU', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
-}
 
 // Шапка в одну строку: название издания слева, служебные ссылки справа.
 // Разделов нет — сайт показывает единую ленту.
@@ -79,8 +69,8 @@ export default function Navbar() {
       <div className="mx-auto max-w-7xl px-4">
         {/* Разрядка живёт на самих служебных надписях: на названии издания
             она бы перебила его собственную плотную посадку. */}
-        <div className="flex items-center justify-between gap-4 py-3 text-[11px] uppercase text-neutral-500">
-          <div className="flex min-w-0 items-center gap-3">
+        <div className="flex items-center justify-between gap-2 py-2.5 text-[11px] uppercase text-neutral-500 sm:gap-3">
+          <div className="flex min-w-0 items-center gap-2">
             {/* Название издания слева — оно же ссылка на главную. */}
             <Link
               to="/"
@@ -89,16 +79,15 @@ export default function Navbar() {
               title="На главную"
             >
               <BrandMark className="h-7 w-7 shrink-0 sm:h-8 sm:w-8" />
-              <span className="text-lg font-extrabold tracking-tight sm:text-xl">{title}</span>
+              <span className="truncate text-base font-extrabold tracking-tight sm:text-lg">{title}</span>
             </Link>
 
-            <span className="hidden truncate tracking-widest lg:inline">{todayLine()}</span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
             <a
               href="https://wingedsaga.github.io/Messages-seconds/"
-              className="btn-ghost hidden py-1.5 text-brand lg:inline-flex"
+              className="btn-ghost hidden gap-0 px-2.5 py-1.5 text-brand md:inline-flex"
               title="Сообщения секунды"
             >
               <MessageCircle className="h-4 w-4" aria-hidden="true" />
@@ -107,7 +96,7 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => setTheme((current) => (current === 'dark' ? 'light' : 'dark'))}
-              className="btn-ghost hidden px-2.5 py-1.5 sm:inline-flex"
+              className="hidden"
               aria-label={theme === 'dark' ? 'Включить светлую тему' : 'Включить тёмную тему'}
               title={theme === 'dark' ? 'Светлая тема' : 'Тёмная тема'}
             >
@@ -118,7 +107,7 @@ export default function Navbar() {
                 ProtectedRoute отправит на вход. */}
             <Link
               to="/submit"
-              className="btn-primary hidden py-1.5 shadow-brand/25 sm:inline-flex"
+              className="btn-primary hidden py-1.5 shadow-brand/25 md:inline-flex"
               title="Предложить новость"
             >
               <FilePlus2 className="h-4 w-4" aria-hidden="true" />
@@ -128,7 +117,7 @@ export default function Navbar() {
             {/* На узком экране места на подпись нет, остаётся сам знак. */}
             <Link
               to="/submit"
-              className="btn-primary px-2.5 py-1.5 sm:hidden"
+              className="btn-primary px-2.5 py-1.5 md:hidden"
               aria-label="Предложить новость"
               title="Предложить новость"
             >
@@ -140,7 +129,7 @@ export default function Navbar() {
               href={DONATION_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-ghost hidden py-1.5 text-brand hover:bg-brand-accent/30 sm:inline-flex"
+              className="hidden"
               title="Поддержать издание"
             >
               <Heart className="h-4 w-4" aria-hidden="true" />
@@ -149,12 +138,12 @@ export default function Navbar() {
 
             {isAuthenticated ? (
               <>
-                <Link to="/bookmarks" className="btn-ghost hidden sm:inline-flex" title="Закладки">
+                <Link to="/bookmarks" className="hidden" title="Закладки">
                   <Bookmark className="h-4 w-4" aria-hidden="true" />
                 </Link>
                 <Link
                   to="/profile"
-                  className="hidden items-center gap-2 rounded px-2 py-1 hover:bg-neutral-100 sm:flex"
+                  className="hidden"
                   title="Профиль"
                 >
                   <Avatar user={user} size="sm" />
@@ -163,11 +152,11 @@ export default function Navbar() {
                   </span>
                 </Link>
                 {isAdmin && (
-                  <Link to="/admin" className="btn-ghost hidden sm:inline-flex" title="Админ-панель">
+                  <Link to="/admin" className="hidden" title="Админ-панель">
                     <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
                   </Link>
                 )}
-                <button type="button" onClick={handleLogout} className="btn-ghost hidden sm:inline-flex" title="Выйти">
+                <button type="button" onClick={handleLogout} className="hidden" title="Выйти">
                   <LogOut className="h-4 w-4" aria-hidden="true" />
                 </button>
               </>
@@ -175,10 +164,10 @@ export default function Navbar() {
               <>
                 {/* Вход и регистрация ушли на второй план: две заливные
                     кнопки рядом спорят, и главная перестаёт читаться. */}
-                <Link to="/login" className="btn-ghost hidden py-1.5 sm:inline-flex">
+                <Link to="/login" className="hidden">
                   Вход
                 </Link>
-                <Link to="/register" className="btn-outline hidden py-1.5 sm:inline-flex">
+                <Link to="/register" className="hidden">
                   Регистрация
                 </Link>
               </>
@@ -187,7 +176,7 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => setMenuOpen((open) => !open)}
-              className="btn-ghost sm:hidden"
+              className="btn-ghost px-2.5"
               aria-expanded={menuOpen}
               aria-label={menuOpen ? 'Закрыть меню' : 'Открыть меню'}
             >
@@ -199,7 +188,7 @@ export default function Navbar() {
       </div>
 
       {menuOpen && (
-        <nav className="animate-fade-in border-t border-neutral-200 bg-white sm:hidden" aria-label="Меню">
+        <nav className="animate-fade-in border-t border-neutral-200 bg-white sm:absolute sm:right-4 sm:top-full sm:w-80 sm:rounded-b-xl sm:border sm:border-t-0 sm:shadow-lg" aria-label="Меню">
           <div className="mx-auto flex max-w-7xl flex-col px-4 py-2">
             {isAuthenticated ? (
               <>
