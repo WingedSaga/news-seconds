@@ -6,7 +6,13 @@ export const TOKEN_KEY = 'ns_token';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
 // Запасной прямой маршрут для Safari/iOS, когда браузер или сеть режет workers.dev.
 // Он ведёт в тот же API на Raspberry Pi через исходящий Cloudflare Tunnel.
-const FALLBACK_API_URL = 'https://adopted-cart-cowboy-diet.trycloudflare.com/api';
+// Independent HTTPS routes to the same API. Mobile browsers occasionally block
+// a specific Cloudflare hostname, so try the remaining routes automatically.
+const API_FALLBACK_URLS = [
+  'https://news-seconds-api-pages.pages.dev/api',
+  'https://news-seconds-api-proxy.news-seconds-api.workers.dev/api',
+  'https://adopted-cart-cowboy-diet.trycloudflare.com/api',
+];
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -33,11 +39,13 @@ api.interceptors.response.use(
     // В таком случае повторяем запрос через прямой HTTPS-туннель, как и при
     // сетевой ошибке браузера. Ошибки 4xx не повторяем: это уже ответ API.
     const shouldUseFallback = !error.response || error.response.status >= 500;
-    if (shouldUseFallback && requestConfig && !requestConfig.__usedFallback && requestConfig.baseURL !== FALLBACK_API_URL) {
+    const attemptedUrls = requestConfig?.__attemptedApiUrls || [requestConfig?.baseURL || API_BASE_URL];
+    const fallbackUrl = API_FALLBACK_URLS.find((url) => !attemptedUrls.includes(url));
+    if (shouldUseFallback && requestConfig && fallbackUrl) {
       return api({
         ...requestConfig,
-        baseURL: FALLBACK_API_URL,
-        __usedFallback: true,
+        baseURL: fallbackUrl,
+        __attemptedApiUrls: [...attemptedUrls, fallbackUrl],
       });
     }
 
