@@ -37,9 +37,9 @@ jobs:
 
       - name: Сборка
         env:
-          # Адрес развёрнутого backend. По умолчанию — рабочий сервис на Render;
-          # переопределяется переменной VITE_API_URL в Settings -> Secrets and variables -> Actions -> Variables
-          VITE_API_URL: ${{ vars.VITE_API_URL || 'https://novosti-sekundy-api.onrender.com/api' }}
+          # По умолчанию API идёт через Cloudflare Worker к Raspberry Pi. При необходимости
+          # адрес можно переопределить переменной PUBLIC_API_URL в настройках Actions.
+          VITE_API_URL: ${{ vars.PUBLIC_API_URL || 'https://news-seconds-api-proxy.news-seconds-api.workers.dev/api' }}
           # Сайт живёт на своём домене (client/public/CNAME), то есть в корне.
           # Для подпапки /<имя-репозитория>/ здесь была бы другая строка.
           VITE_BASE_PATH: /

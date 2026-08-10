@@ -14,7 +14,7 @@ jobs:
     steps:
       - name: Пинг health-эндпоинта
         env:
-          API_URL: ${{ vars.VITE_API_URL || 'https://novosti-sekundy-api.onrender.com/api' }}
+          API_URL: ${{ vars.PUBLIC_API_URL || 'https://news-seconds-api-proxy.news-seconds-api.workers.dev/api' }}
         run: |
           code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 90 "$API_URL/health")
           echo "GET $API_URL/health -> $code"
