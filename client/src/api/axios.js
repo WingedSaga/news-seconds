@@ -9,6 +9,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api'
 // Independent HTTPS routes to the same API. Mobile browsers occasionally block
 // a specific Cloudflare hostname, so try the remaining routes automatically.
 const API_FALLBACK_URLS = [
+  'https://wingedsaga.tail7db1c9.ts.net/api',
   'https://news-seconds-api-pages.pages.dev/api',
   'https://news-seconds-api-proxy.news-seconds-api.workers.dev/api',
   'https://adopted-cart-cowboy-diet.trycloudflare.com/api',
@@ -62,7 +63,7 @@ api.interceptors.response.use(
       error.fieldErrors = data?.errors || [];
     } else if (error.code === 'ERR_NETWORK' || error.code === 'ERR_FAILED') {
       error.isNetworkOrCorsError = true;
-      error.message = 'Не удалось подключиться к API. Проверьте интернет и обновите страницу: Safari мог заблокировать запрос авторизации.';
+      error.message = 'Не удалось подключиться к API. Проверьте интернет и обновите страницу — браузер или сеть могли заблокировать запрос.';
     } else if (error.code === 'ECONNABORTED') {
       error.message = 'Превышено время ожидания ответа сервера';
     } else {
