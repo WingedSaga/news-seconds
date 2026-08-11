@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom';
+import { MonitorSmartphone } from 'lucide-react';
 import {
   ClipboardList,
   FileStack,
@@ -13,6 +14,7 @@ import {
 } from 'lucide-react';
 
 const LINKS = [
+  { to: '/admin/logins', label: 'Входы', icon: MonitorSmartphone },
   { to: '/admin', label: 'Обзор', icon: LayoutDashboard, end: true },
   { to: '/admin/pending', label: 'Модерация', icon: ClipboardList },
   { to: '/admin/articles', label: 'Все статьи', icon: FileStack },

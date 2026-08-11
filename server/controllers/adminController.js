@@ -642,6 +642,24 @@ async function listLogs(_req, res, next) {
   }
 }
 
+async function listLoginActivity(_req, res, next) {
+  try {
+    const { data, error } = await supabase
+      .from('login_activity')
+      .select('id, ip_address, device_label, user_agent, created_at, user:users(id, username, email)')
+      .order('created_at', { ascending: false })
+      .limit(300);
+
+    if (isMissingTable(error)) {
+      return res.json({ items: [], notice: setupNotice('login_activity', '011_login_activity.sql') });
+    }
+    if (error) throw error;
+    res.json({ items: data || [] });
+  } catch (err) {
+    next(err);
+  }
+}
+
 function toCsv(rows, columns) {
   const escape = (value) => {
     const text = value === null || value === undefined ? '' : String(value);
@@ -831,6 +849,7 @@ module.exports = {
   bulkArticles,
   deleteUser,
   listLogs,
+  listLoginActivity,
   exportCsv,
   getSettings,
   updateSettings,

@@ -27,6 +27,7 @@ import AdminComments from './pages/admin/AdminComments';
 import AdminLogs from './pages/admin/AdminLogs';
 import AdminSupport from './pages/admin/AdminSupport';
 import AdminReports from './pages/admin/AdminReports';
+import AdminLogins from './pages/admin/AdminLogins';
 
 export default function App() {
   return (
@@ -95,6 +96,7 @@ export default function App() {
         <Route path="reports" element={<AdminReports />} />
         <Route path="support" element={<AdminSupport />} />
         <Route path="logs" element={<AdminLogs />} />
+        <Route path="logins" element={<AdminLogins />} />
         <Route path="settings" element={<AdminSettings />} />
         <Route path="*" element={<Navigate to="/admin" replace />} />
       </Route>

@@ -15,6 +15,7 @@ const {
   bulkArticles,
   deleteUser,
   listLogs,
+  listLoginActivity,
   exportCsv,
   getSettings,
   updateSettings,
@@ -154,6 +155,7 @@ router.post(
 );
 
 router.get('/logs', listLogs);
+router.get('/login-activity', listLoginActivity);
 
 router.get(
   '/export/:entity',
