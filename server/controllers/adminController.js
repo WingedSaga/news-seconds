@@ -393,6 +393,47 @@ async function updateUserRole(req, res, next) {
   }
 }
 
+// PATCH /api/admin/users/:id/username
+async function updateUserUsername(req, res, next) {
+  try {
+    const username = String(req.body.username).trim();
+
+    const { data: existing, error: existingError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('username', username)
+      .neq('id', req.params.id)
+      .maybeSingle();
+
+    if (existingError) throw existingError;
+    if (existing) {
+      return res.status(409).json({ message: 'Это имя пользователя уже занято' });
+    }
+
+    const { data, error } = await supabase
+      .from('users')
+      .update({ username })
+      .eq('id', req.params.id)
+      .select(USER_FIELDS)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) {
+      return res.status(404).json({ message: 'Пользователь не найден' });
+    }
+
+    await audit.logAction(req.user, 'user.username', {
+      targetType: 'user',
+      targetId: data.id,
+      details: { username },
+    });
+
+    res.json({ item: data });
+  } catch (err) {
+    next(err);
+  }
+}
+
 // PATCH /api/admin/users/:id/ban
 async function updateUserBan(req, res, next) {
   try {
@@ -801,5 +842,6 @@ module.exports = {
   deleteArticle,
   listUsers,
   updateUserRole,
+  updateUserUsername,
   updateUserBan,
 };
