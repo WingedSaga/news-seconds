@@ -1,4 +1,5 @@
 const { supabase } = require('../db/supabase');
+const bcrypt = require('bcryptjs');
 const { articleSelect, pickWritableColumns } = require('../db/schemaState');
 const { USER_FIELDS } = require('../middleware/authMiddleware');
 const settingsService = require('../services/settings');
@@ -435,6 +436,28 @@ async function updateUserUsername(req, res, next) {
 }
 
 // PATCH /api/admin/users/:id/ban
+async function resetUserPassword(req, res, next) {
+  try {
+    const password_hash = await bcrypt.hash(String(req.body.password), 10);
+    const { data, error } = await supabase
+      .from('users')
+      .update({ password_hash })
+      .eq('id', req.params.id)
+      .select('id, username, email')
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) return res.status(404).json({ message: 'Пользователь не найден' });
+
+    await audit.logAction(req.user, 'user.password_reset', {
+      targetType: 'user', targetId: data.id, details: { username: data.username },
+    });
+    res.json({ message: 'Пароль пользователя изменён' });
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function updateUserBan(req, res, next) {
   try {
     const { is_banned } = req.body;
@@ -862,5 +885,6 @@ module.exports = {
   listUsers,
   updateUserRole,
   updateUserUsername,
+  resetUserPassword,
   updateUserBan,
 };
