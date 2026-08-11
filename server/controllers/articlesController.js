@@ -1,6 +1,6 @@
 const { supabase } = require('../db/supabase');
 const settings = require('../services/settings');
-const { articleSelect, pickWritableColumns } = require('../db/schemaState');
+const { articleSelect, hasArticleColumn, pickWritableColumns } = require('../db/schemaState');
 const { shouldCountView } = require('../utils/viewGuard');
 
 // В значениях фильтров PostgREST спецсимволы ломают выражение `or`, убираем их.
@@ -27,8 +27,14 @@ async function listArticles(req, res, next) {
       .from('articles')
       .select(articleSelect(), { count: 'exact' })
       .eq('status', 'approved')
-      .order('created_at', { ascending: false })
       .range(from, to);
+
+    // Старые базы без миграции 010 продолжают работать по обычной дате,
+    // а после миграции закреплённый материал всегда идёт первым.
+    if (hasArticleColumn('is_featured')) {
+      query = query.order('is_featured', { ascending: false });
+    }
+    query = query.order('created_at', { ascending: false });
 
     if (category && ['news', 'joke', 'weather', 'other'].includes(category)) {
       query = query.eq('category', category);

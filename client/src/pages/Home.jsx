@@ -1,4 +1,4 @@
-import { Loader2, MessageCircle, Plus, Search, X } from 'lucide-react';
+import { Loader2, MessageCircle, Pin, Plus, Search, X } from 'lucide-react';
 import useArticleFeed from '../hooks/useArticleFeed';
 import FeedItem from '../components/FeedItem';
 import ErrorMessage from '../components/ErrorMessage';
@@ -97,6 +97,12 @@ export default function Home() {
         )
       ) : (
         <div className="space-y-12">
+          {lead?.is_featured && (
+            <div className="-mb-8 flex items-center gap-2 text-sm font-semibold text-brand">
+              <Pin className="h-4 w-4" aria-hidden="true" />
+              Закреплено редакцией
+            </div>
+          )}
           <FeedItem article={lead} variant="hero" />
 
           {rest.length > 0 && (
