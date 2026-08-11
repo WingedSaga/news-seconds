@@ -322,7 +322,7 @@ export default function AdminArticles() {
                 {article.status === 'approved' && (
                   <button type="button" onClick={() => setFeatured(article)} className="btn-ghost text-xs text-amber-700">
                     <Star className={`h-4 w-4 ${article.is_featured ? 'fill-current' : ''}`} aria-hidden="true" />
-                    {article.is_featured ? 'Главная' : 'Сделать главной'}
+                    {article.is_featured ? 'Закреплена сверху' : 'Закрепить сверху'}
                   </button>
                 )}
                 <button type="button" onClick={() => startEdit(article)} className="btn-outline flex-1 text-xs">
@@ -396,8 +396,8 @@ export default function AdminArticles() {
                           type="button"
                           onClick={() => setFeatured(article)}
                           className={`rounded p-1.5 hover:bg-amber-50 hover:text-amber-700 ${article.is_featured ? 'text-amber-600' : 'text-neutral-500'}`}
-                          aria-label="Сделать главной новостью"
-                          title={article.is_featured ? 'Главная новость' : 'Сделать главной новостью'}
+                          aria-label="Закрепить новость сверху"
+                          title={article.is_featured ? 'Закреплённая новость' : 'Закрепить сверху'}
                         >
                           <Star className={`h-4 w-4 ${article.is_featured ? 'fill-current' : ''}`} aria-hidden="true" />
                         </button>

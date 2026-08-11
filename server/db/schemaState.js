@@ -88,6 +88,7 @@ module.exports = {
   articleSelect,
   commentSelect,
   pickWritableColumns,
+  hasArticleColumn: (column) => available.has(column),
   isDetected: () => detected,
   repliesEnabled: () => commentParent,
 };
