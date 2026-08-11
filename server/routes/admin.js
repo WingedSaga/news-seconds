@@ -26,6 +26,7 @@ const {
   deleteArticle,
   listUsers,
   updateUserRole,
+  updateUserUsername,
   updateUserBan,
 } = require('../controllers/adminController');
 
@@ -162,6 +163,21 @@ router.get(
 );
 
 router.get('/users', listUsers);
+
+router.patch(
+  '/users/:id/username',
+  [
+    param('id').isUUID().withMessage('Некорректный идентификатор пользователя'),
+    body('username')
+      .trim()
+      .isLength({ min: 3, max: 30 })
+      .withMessage('Имя пользователя должно быть от 3 до 30 символов')
+      .matches(/^[a-zA-Zа-яА-ЯёЁ0-9_-]+$/)
+      .withMessage('Имя может содержать только буквы, цифры, дефис и подчёркивание'),
+  ],
+  validate,
+  updateUserUsername
+);
 
 router.delete(
   '/users/:id',

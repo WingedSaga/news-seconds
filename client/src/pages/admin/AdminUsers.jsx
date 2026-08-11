@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Ban, ShieldCheck, ShieldOff, Trash2, Undo2, Users } from 'lucide-react';
+import { Ban, Pencil, ShieldCheck, ShieldOff, Trash2, Undo2, Users } from 'lucide-react';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import Loader from '../../components/Loader';
@@ -100,6 +100,27 @@ export default function AdminUsers() {
     }
   };
 
+  const changeUsername = async (user) => {
+    // Администратор выбирает новое имя сам: это позволяет быстро убрать оскорбительные ники.
+    // eslint-disable-next-line no-alert
+    const value = window.prompt('Новое имя пользователя', user.username);
+    if (value === null) return;
+
+    const username = value.trim();
+    if (!username || username === user.username) return;
+
+    setBusyId(user.id);
+    setError('');
+    try {
+      const { data } = await api.patch(`/admin/users/${user.id}/username`, { username });
+      applyUpdate(data.item);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -158,6 +179,16 @@ export default function AdminUsers() {
 
                 {!isSelf && (
                   <div className="flex flex-wrap gap-2 border-t border-neutral-100 pt-3">
+                    <button
+                      type="button"
+                      onClick={() => changeUsername(user)}
+                      disabled={busyId === user.id}
+                      className="btn-ghost text-xs"
+                    >
+                      <Pencil className="h-4 w-4" aria-hidden="true" />
+                      Изменить ник
+                    </button>
+
                     <button
                       type="button"
                       onClick={() => changeRole(user)}
@@ -249,6 +280,17 @@ export default function AdminUsers() {
                     <td className="px-4 py-3 text-neutral-500">{formatDateTime(user.created_at)}</td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => changeUsername(user)}
+                          disabled={isSelf || busyId === user.id}
+                          className="btn-ghost text-xs"
+                          title="Изменить имя пользователя"
+                        >
+                          <Pencil className="h-4 w-4" aria-hidden="true" />
+                          Изменить ник
+                        </button>
+
                         <button
                           type="button"
                           onClick={() => changeRole(user)}
