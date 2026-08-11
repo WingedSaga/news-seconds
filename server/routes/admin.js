@@ -28,6 +28,7 @@ const {
   listUsers,
   updateUserRole,
   updateUserUsername,
+  resetUserPassword,
   updateUserBan,
 } = require('../controllers/adminController');
 
@@ -179,6 +180,16 @@ router.patch(
   ],
   validate,
   updateUserUsername
+);
+
+router.patch(
+  '/users/:id/password',
+  [
+    param('id').isUUID().withMessage('Invalid user identifier'),
+    body('password').isString().isLength({ min: 8, max: 128 }).withMessage('Password must be 8 to 128 characters'),
+  ],
+  validate,
+  resetUserPassword
 );
 
 router.delete(

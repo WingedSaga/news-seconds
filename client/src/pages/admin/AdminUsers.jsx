@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Ban, Pencil, ShieldCheck, ShieldOff, Trash2, Undo2, Users } from 'lucide-react';
+import { Ban, KeyRound, Pencil, ShieldCheck, ShieldOff, Trash2, Undo2, Users } from 'lucide-react';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import Loader from '../../components/Loader';
@@ -121,6 +121,23 @@ export default function AdminUsers() {
     }
   };
 
+  const resetPassword = async (user) => {
+    // eslint-disable-next-line no-alert
+    const password = window.prompt(`Новый пароль для ${user.username} (минимум 8 символов)`);
+    if (password === null) return;
+    if (password.length < 8) { setError('Пароль должен быть не короче 8 символов'); return; }
+    // eslint-disable-next-line no-alert
+    if (!window.confirm(`Изменить пароль пользователя ${user.username}?`)) return;
+    setBusyId(user.id); setError('');
+    try {
+      await api.patch(`/admin/users/${user.id}/password`, { password });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -187,6 +204,11 @@ export default function AdminUsers() {
                     >
                       <Pencil className="h-4 w-4" aria-hidden="true" />
                       Изменить ник
+                    </button>
+
+                    <button type="button" onClick={() => resetPassword(user)} disabled={busyId === user.id} className="btn-ghost text-xs">
+                      <KeyRound className="h-4 w-4" aria-hidden="true" />
+                      Сменить пароль
                     </button>
 
                     <button
@@ -289,6 +311,11 @@ export default function AdminUsers() {
                         >
                           <Pencil className="h-4 w-4" aria-hidden="true" />
                           Изменить ник
+                        </button>
+
+                        <button type="button" onClick={() => resetPassword(user)} disabled={isSelf || busyId === user.id} className="btn-ghost text-xs" title="Задать новый пароль пользователю">
+                          <KeyRound className="h-4 w-4" aria-hidden="true" />
+                          Сменить пароль
                         </button>
 
                         <button
