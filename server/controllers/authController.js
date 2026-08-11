@@ -5,6 +5,7 @@ const { supabase } = require('../db/supabase');
 const { USER_FIELDS } = require('../middleware/authMiddleware');
 const mailer = require('../services/mailer');
 const settings = require('../services/settings');
+const loginActivity = require('../services/loginActivity');
 
 const SALT_ROUNDS = 10;
 const TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
@@ -153,6 +154,10 @@ async function login(req, res, next) {
         message: 'Подтвердите адрес почты — мы отправили вам письмо со ссылкой',
       });
     }
+
+    loginActivity.recordSuccessfulLogin(req, user.id).catch((activityError) => {
+      console.error('[auth] failed to record login activity:', activityError.message);
+    });
 
     return res.json({ token: signToken(user), user: publicUser(user) });
   } catch (err) {
