@@ -542,17 +542,19 @@ async function setFeaturedArticle(req, res, next) {
   try {
     const { data: article, error: findError } = await supabase
       .from('articles')
-      .select('id, title, status')
+      .select('id, title, status, is_featured')
       .eq('id', req.params.id)
       .maybeSingle();
     if (findError) throw findError;
     if (!article) return res.status(404).json({ message: 'Статья не найдена' });
     if (article.status !== 'approved') return res.status(400).json({ message: 'Главной можно сделать только одобренную статью' });
-    const { error: clearError } = await supabase.from('articles').update({ is_featured: false }).eq('is_featured', true);
-    if (clearError) throw clearError;
-    const { data, error } = await supabase.from('articles').update({ is_featured: true }).eq('id', article.id).select(articleSelect()).single();
+    if (!article.is_featured) {
+      const { error: clearError } = await supabase.from('articles').update({ is_featured: false }).eq('is_featured', true);
+      if (clearError) throw clearError;
+    }
+    const { data, error } = await supabase.from('articles').update({ is_featured: !article.is_featured }).eq('id', article.id).select(articleSelect()).single();
     if (error) throw error;
-    await audit.logAction(req.user, 'article.featured', { targetType: 'article', targetId: data.id, details: { title: data.title } });
+    await audit.logAction(req.user, data.is_featured ? 'article.featured' : 'article.unfeatured', { targetType: 'article', targetId: data.id, details: { title: data.title } });
     res.json({ item: data });
   } catch (err) {
     next(err);
