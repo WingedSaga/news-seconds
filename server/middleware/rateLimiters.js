@@ -10,6 +10,17 @@ function createLimiter({ windowMs, max, message }) {
   });
 }
 
+// Защита самого API от всплесков запросов с одного IP. Точечные лимиты ниже
+// остаются строже для регистрации, комментариев и других дорогих операций.
+const apiLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 240,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => req.method === 'OPTIONS' || req.path === '/health',
+  message: { message: 'Слишком много запросов. Попробуйте через минуту.' },
+});
+
 // Лимиты разделены по действиям: активный читатель может комментировать, но не может
 // использовать ту же квоту для массовой регистрации или публикации материалов.
 const registrationLimiter = createLimiter({
@@ -36,4 +47,4 @@ const reportLimiter = createLimiter({
   message: 'Слишком много жалоб. Попробуйте позже.',
 });
 
-module.exports = { registrationLimiter, articleLimiter, commentLimiter, reportLimiter };
+module.exports = { apiLimiter, registrationLimiter, articleLimiter, commentLimiter, reportLimiter };
