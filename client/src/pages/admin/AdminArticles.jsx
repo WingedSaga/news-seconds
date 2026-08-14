@@ -227,7 +227,7 @@ export default function AdminArticles() {
     setError('');
     try {
       const { data } = await api.patch(`/admin/articles/${article.id}/featured`);
-      setItems((previous) => previous.map((item) => ({ ...item, is_featured: item.id === data.item.id })));
+      setItems((previous) => previous.map((item) => ({ ...item, is_featured: item.id === data.item.id ? data.item.is_featured : data.item.is_featured ? false : item.is_featured })));
     } catch (err) {
       setError(err.message);
     }
