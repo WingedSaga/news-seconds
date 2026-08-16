@@ -133,7 +133,7 @@ export default function FeedItem({ article, variant = 'card' }) {
     const withCover = hasCover(article);
 
     return (
-      <article className="group">
+      <article className="group rounded-3xl border border-neutral-200/90 bg-white p-4 shadow-[0_1px_3px_rgba(16,24,40,0.04)] transition-shadow duration-200 hover:shadow-[0_14px_36px_rgba(27,94,32,0.08)] sm:p-5">
         <Link
           to={`/article/${article.id}`}
           className={`grid gap-5 lg:gap-8 ${withCover ? 'lg:grid-cols-5' : ''}`}

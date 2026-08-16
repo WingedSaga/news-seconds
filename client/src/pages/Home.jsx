@@ -38,10 +38,10 @@ export default function Home() {
     <div className="mx-auto max-w-6xl">
       {/* Заголовок и поиск в одной строке: поле перестаёт висеть посреди
           пустоты и сразу читается как часть ленты. */}
-      <div className="mb-8 flex flex-col gap-4 border-b border-neutral-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
+      <div className="mb-9 flex flex-col gap-5 border-b border-neutral-200/90 pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="kicker mb-1">Последние публикации</p>
-          <h1 className="font-serif text-2xl font-bold tracking-tight text-ink sm:text-3xl">Лента</h1>
+          <p className="kicker mb-2">Последние публикации</p>
+          <h1 className="font-serif text-3xl font-semibold tracking-[-0.035em] text-ink sm:text-[2.2rem]">Лента</h1>
         </div>
 
         <div className="relative sm:w-80">
@@ -55,7 +55,7 @@ export default function Home() {
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Поиск по материалам"
             aria-label="Поиск"
-            className="w-full rounded-full border border-neutral-300 bg-white py-2.5 pl-10 pr-10 text-sm
+            className="w-full rounded-xl border border-neutral-300 bg-white py-3 pl-10 pr-10 text-sm shadow-sm shadow-neutral-900/[0.02]
               transition-colors placeholder:text-neutral-400 focus:border-brand focus:outline-none
               focus:ring-2 focus:ring-brand/25"
           />
@@ -74,7 +74,7 @@ export default function Home() {
 
       <a
         href="https://wingedsaga.github.io/Messages-seconds/"
-        className="mb-5 flex items-center justify-center gap-2 rounded-2xl border border-brand/25 bg-brand-soft px-4 py-3 text-sm font-semibold text-brand-dark sm:hidden"
+        className="mb-6 flex items-center justify-center gap-2 rounded-xl border border-brand/20 bg-brand-soft px-4 py-3 text-sm font-semibold text-brand-dark sm:hidden"
       >
         <MessageCircle className="h-5 w-5" aria-hidden="true" />
         Открыть Сообщения секунды
@@ -96,7 +96,7 @@ export default function Home() {
           />
         )
       ) : (
-        <div className="space-y-12">
+        <div className="space-y-14">
           {lead?.is_featured && (
             <div className="-mb-8 flex items-center gap-2 text-sm font-semibold text-brand">
               <Pin className="h-4 w-4" aria-hidden="true" />
@@ -106,7 +106,7 @@ export default function Home() {
           <FeedItem article={lead} variant="hero" />
 
           {rest.length > 0 && (
-            <div className="grid gap-x-6 gap-y-6 border-t border-neutral-200 pt-8 md:grid-cols-2">
+            <div className="grid gap-x-7 gap-y-8 border-t border-neutral-200 pt-9 md:grid-cols-2">
               {rest.map((article) => (
                 <div key={article.id} className="feed-card">
                   <FeedItem article={article} />

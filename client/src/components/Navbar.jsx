@@ -66,11 +66,11 @@ export default function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-neutral-200 bg-white/95 shadow-[0_2px_12px_rgba(16,24,40,0.05)] backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-neutral-200/80 bg-white/95 shadow-[0_1px_12px_rgba(16,24,40,0.04)] backdrop-blur">
       <div className="mx-auto max-w-7xl px-4">
         {/* Разрядка живёт на самих служебных надписях: на названии издания
             она бы перебила его собственную плотную посадку. */}
-        <div className="flex items-center justify-between gap-2 py-2.5 text-[11px] uppercase text-neutral-500 sm:gap-3">
+        <div className="flex min-h-16 items-center justify-between gap-2 py-2 text-[11px] uppercase text-neutral-500 sm:gap-3">
           <div className="flex min-w-0 items-center gap-2">
             {/* Название издания слева — оно же ссылка на главную. */}
             <Link
@@ -80,7 +80,7 @@ export default function Navbar() {
               title="На главную"
             >
               <BrandMark className="h-7 w-7 shrink-0 sm:h-8 sm:w-8" />
-              <span className="truncate text-base font-extrabold tracking-tight sm:text-lg">{title}</span>
+              <span className="max-w-[10.5rem] truncate text-[15px] font-extrabold tracking-tight sm:max-w-none sm:text-lg">{title}</span>
             </Link>
 
           </div>
@@ -88,7 +88,7 @@ export default function Navbar() {
           <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
             <a
               href="https://wingedsaga.github.io/Messages-seconds/"
-              className="btn-ghost hidden gap-0 px-2.5 py-1.5 text-brand md:inline-flex"
+              className="hidden"
               title="Сообщения секунды"
             >
               <MessageCircle className="h-4 w-4" aria-hidden="true" />
@@ -108,7 +108,7 @@ export default function Navbar() {
                 ProtectedRoute отправит на вход. */}
             <Link
               to="/submit"
-              className="btn-primary hidden py-1.5 shadow-brand/25 md:inline-flex"
+              className="btn-primary hidden rounded-lg py-2 shadow-brand/20 md:inline-flex"
               title="Предложить новость"
             >
               <FilePlus2 className="h-4 w-4" aria-hidden="true" />
@@ -144,7 +144,7 @@ export default function Navbar() {
                 </Link>
                 <Link
                   to="/profile"
-                  className="btn-ghost hidden items-center gap-2 rounded-lg px-2 py-1 md:flex"
+                  className="hidden items-center gap-2 rounded-full border border-neutral-200 bg-neutral-50 px-2 py-1.5 text-sm font-semibold normal-case tracking-normal text-neutral-700 transition-colors hover:border-brand/30 hover:bg-brand-soft md:flex"
                 >
                   <Avatar user={user} size="sm" />
                   <span className="max-w-[120px] truncate normal-case tracking-normal">
@@ -176,7 +176,7 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => setMenuOpen((open) => !open)}
-              className="btn-ghost ml-1 shrink-0 px-2.5"
+              className="ml-1 grid h-10 w-10 shrink-0 place-items-center rounded-full border border-neutral-200 bg-white text-neutral-600 transition-colors hover:border-brand/30 hover:bg-brand-soft hover:text-brand"
               aria-expanded={menuOpen}
               aria-label={menuOpen ? 'Закрыть меню' : 'Открыть меню'}
             >
@@ -188,8 +188,8 @@ export default function Navbar() {
       </div>
 
       {menuOpen && (
-        <nav className="animate-fade-in border-t border-neutral-200 bg-white sm:absolute sm:right-4 sm:top-full sm:w-80 sm:rounded-b-xl sm:border sm:border-t-0 sm:shadow-lg" aria-label="Меню">
-          <div className="mx-auto flex max-w-7xl flex-col px-4 py-2">
+        <nav className="animate-fade-in border-t border-neutral-200 bg-white sm:absolute sm:right-4 sm:top-full sm:w-80 sm:rounded-2xl sm:border sm:shadow-xl sm:shadow-neutral-900/10" aria-label="Меню">
+          <div className="mx-auto flex max-w-7xl flex-col px-4 py-3">
             {isAuthenticated ? (
               <>
                 <Link to="/submit" className="btn-primary my-2 w-full">
