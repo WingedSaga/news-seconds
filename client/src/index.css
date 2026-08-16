@@ -167,6 +167,11 @@
   border-color: #34473a;
 }
 
+:root[data-theme='dark'] .bg-brand-soft\/60 {
+  background-color: #203b26 !important;
+  border-color: #34543a !important;
+}
+
 :root[data-theme='dark'] .btn-ghost:hover {
   background-color: #2b3a2e;
 }
