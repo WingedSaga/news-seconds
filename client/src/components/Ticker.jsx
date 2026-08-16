@@ -32,9 +32,9 @@ export default function Ticker() {
   return (
     <div className="border-b border-brand/15 bg-brand-soft/60 text-brand-dark">
       <div className="mx-auto flex max-w-7xl items-center gap-3 px-4">
-        <span className="flex shrink-0 items-center gap-2 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-brand">
-          <Radio className="h-4 w-4" aria-hidden="true" />
-          <span className="hidden sm:inline">Срочно</span>
+        <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-brand px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white shadow-sm shadow-brand/20">
+          <Radio className="h-3.5 w-3.5" aria-hidden="true" />
+          <span>Срочно</span>
         </span>
 
         <div className="relative flex-1 overflow-hidden py-1.5">
