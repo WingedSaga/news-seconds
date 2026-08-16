@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Clock, Eye, Images, Music, Play, Video } from 'lucide-react';
 import Avatar from './Avatar';
-import { excerpt, formatRelativeDate } from '../utils/format';
+import { CATEGORY_LABELS, excerpt, formatRelativeDate } from '../utils/format';
 
 // Метки вложений поверх снимка: сколько кадров и есть ли запись.
 function Badges({ imageCount, mediaType }) {
@@ -145,6 +145,7 @@ export default function FeedItem({ article, variant = 'card' }) {
           )}
 
           <div className="flex flex-col justify-center gap-3 lg:col-span-2">
+            {article.category && <span className="pill w-fit">{CATEGORY_LABELS[article.category] || article.category}</span>}
             <h2 className="font-serif text-[1.75rem] font-bold leading-[1.15] text-ink transition-colors group-hover:text-brand sm:text-4xl">
               {article.title}
             </h2>
@@ -163,7 +164,7 @@ export default function FeedItem({ article, variant = 'card' }) {
       <Link to={`/article/${article.id}`} className="flex flex-1 flex-col gap-3">
         <Cover article={article} ratio="aspect-[16/10]" rounded="rounded-xl" />
 
-        <h2 className="font-serif text-xl font-bold leading-snug text-ink transition-colors group-hover:text-brand">
+        <h2 className="font-serif text-xl font-bold leading-[1.2] tracking-[-0.015em] text-ink transition-colors group-hover:text-brand">
           {article.title}
         </h2>
         <p className="line-clamp-2 flex-1 text-sm leading-relaxed text-neutral-600">

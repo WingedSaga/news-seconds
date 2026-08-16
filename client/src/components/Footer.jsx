@@ -9,14 +9,14 @@ export default function Footer() {
   const [calcOpen, setCalcOpen] = useState(false);
 
   return (
-    <footer className="mt-12 border-t border-neutral-200 bg-white">
-      <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-8 sm:flex-row sm:items-center sm:justify-between">
+    <footer className="mt-14 border-t border-neutral-200 bg-white/80">
+      <div className="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-9 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2 text-brand">
           <BrandMark className="h-6 w-6" />
           <span className="whitespace-nowrap text-sm font-extrabold tracking-tight">НОВОСТИ СЕКУНДЫ</span>
         </div>
 
-        <nav className="flex flex-wrap gap-4 text-sm text-neutral-500">
+        <nav className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-neutral-500">
           <Link to="/" className="hover:text-brand">
             Лента
           </Link>
