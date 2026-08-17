@@ -41,7 +41,7 @@ jobs:
           # мобильных браузерах. Прямой туннель Raspberry Pi остаётся запасным.
           # Pages.dev is the primary route for DuckDuckGo on Android. The client
           # automatically retries through Worker and Tunnel if this route fails.
-          VITE_API_URL: https://wingedsaga.tail7db1c9.ts.net/api
+          VITE_API_URL: https://enforcement-recipe-document-boating.trycloudflare.com/api
           # Сайт живёт на своём домене (client/public/CNAME), то есть в корне.
           # Для подпапки /<имя-репозитория>/ здесь была бы другая строка.
           VITE_BASE_PATH: /
