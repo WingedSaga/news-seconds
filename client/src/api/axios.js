@@ -10,10 +10,10 @@ const SAME_ORIGIN_FALLBACK_APP = 'https://news-seconds-api-pages.pages.dev/';
 // Independent HTTPS routes to the same API. Mobile browsers occasionally block
 // a specific Cloudflare hostname, so try the remaining routes automatically.
 const API_FALLBACK_URLS = [
+  'https://enforcement-recipe-document-boating.trycloudflare.com/api',
   'https://wingedsaga.tail7db1c9.ts.net/api',
   'https://news-seconds-api-pages.pages.dev/api',
   'https://news-seconds-api-proxy.news-seconds-api.workers.dev/api',
-  'https://adopted-cart-cowboy-diet.trycloudflare.com/api',
 ];
 
 const api = axios.create({
