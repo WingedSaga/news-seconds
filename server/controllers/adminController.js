@@ -5,6 +5,7 @@ const { USER_FIELDS } = require('../middleware/authMiddleware');
 const settingsService = require('../services/settings');
 const mailer = require('../services/mailer');
 const audit = require('../services/audit');
+const { getEntitlementsForUsers, getSubscriptionEntitlement } = require('../services/subscriptions');
 const { loadMessages, TICKET_SELECT } = require('./supportController');
 
 // Таблицы из миграций может не быть, если база отстала от кода.
@@ -241,7 +242,8 @@ async function listArticles(req, res, next) {
 
     const { data, error } = await query;
     if (error) throw error;
-    res.json({ items: data || [] });
+    const entitlements = await getEntitlementsForUsers((data || []).map((user) => user.id));
+    res.json({ items: (data || []).map((user) => ({ ...user, subscription: entitlements.get(user.id) || { is_active: false } })) });
   } catch (err) {
     next(err);
   }
@@ -453,6 +455,47 @@ async function resetUserPassword(req, res, next) {
       targetType: 'user', targetId: data.id, details: { username: data.username },
     });
     res.json({ message: 'Пароль пользователя изменён' });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// PATCH /api/admin/users/:id/subscription — ручная выдача или отзыв доступа.
+// Это не отменяет оплачиваемую Stripe-подписку: удаляется только запись админа.
+async function updateUserSubscription(req, res, next) {
+  try {
+    const { action, expires_at: expiresAt } = req.body;
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select(USER_FIELDS)
+      .eq('id', req.params.id)
+      .maybeSingle();
+    if (userError) throw userError;
+    if (!user) return res.status(404).json({ message: 'Пользователь не найден' });
+
+    if (action === 'grant') {
+      const { error } = await supabase.from('subscription_grants').upsert(
+        {
+          user_id: user.id,
+          granted_by: req.user.id,
+          expires_at: expiresAt || null,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'user_id' }
+      );
+      if (error) throw error;
+    } else {
+      const { error } = await supabase.from('subscription_grants').delete().eq('user_id', user.id);
+      if (error) throw error;
+    }
+
+    const subscription = await getSubscriptionEntitlement(user.id);
+    await audit.logAction(req.user, `subscription.${action}`, {
+      targetType: 'user',
+      targetId: user.id,
+      details: { username: user.username, expires_at: expiresAt || null },
+    });
+    res.json({ item: { ...user, subscription } });
   } catch (err) {
     next(err);
   }
@@ -889,4 +932,5 @@ module.exports = {
   updateUserUsername,
   resetUserPassword,
   updateUserBan,
+  updateUserSubscription,
 };

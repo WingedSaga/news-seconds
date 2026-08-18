@@ -30,6 +30,7 @@ const {
   updateUserUsername,
   resetUserPassword,
   updateUserBan,
+  updateUserSubscription,
 } = require('../controllers/adminController');
 
 const router = express.Router();
@@ -217,6 +218,17 @@ router.patch(
   ],
   validate,
   updateUserBan
+);
+
+router.patch(
+  '/users/:id/subscription',
+  [
+    param('id').isUUID().withMessage('Некорректный идентификатор пользователя'),
+    body('action').isIn(['grant', 'revoke']).withMessage('Некорректное действие'),
+    body('expires_at').optional({ values: 'falsy' }).isISO8601().withMessage('Некорректная дата окончания'),
+  ],
+  validate,
+  updateUserSubscription
 );
 
 module.exports = router;

@@ -12,6 +12,13 @@ if (!process.env.JWT_SECRET) {
 const app = express();
 
 app.set('trust proxy', 1);
+// Stripe verifies an HMAC over the original request bytes, so this route must
+// be registered before express.json() changes the body.
+app.post(
+  '/api/payments/stripe/webhook',
+  express.raw({ type: 'application/json' }),
+  require('./controllers/paymentsController').handleStripeWebhook
+);
 app.use(express.json({ limit: '1mb' }));
 
 const builtInAllowedOrigins = [
@@ -69,6 +76,7 @@ app.use('/api/articles', optionalAuth, maintenanceGuard, require('./routes/artic
 app.use('/api/comments', optionalAuth, maintenanceGuard, require('./routes/comments'));
 app.use('/api/reports', optionalAuth, maintenanceGuard, require('./routes/reports'));
 app.use('/api/support', require('./routes/support'));
+app.use('/api/payments', require('./routes/payments'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/upload', require('./routes/upload'));
 

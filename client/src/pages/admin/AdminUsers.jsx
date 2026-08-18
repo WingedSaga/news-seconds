@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Ban, KeyRound, Pencil, ShieldCheck, ShieldOff, Trash2, Undo2, Users } from 'lucide-react';
+import { Ban, Crown, KeyRound, Pencil, ShieldCheck, ShieldOff, Trash2, Undo2, Users } from 'lucide-react';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import Loader from '../../components/Loader';
@@ -138,6 +138,38 @@ export default function AdminUsers() {
     }
   };
 
+  const changeSubscription = async (user) => {
+    const hasManualGrant = user.subscription?.source === 'admin';
+    let payload;
+
+    if (hasManualGrant) {
+      // eslint-disable-next-line no-alert
+      if (!window.confirm(`Отозвать выданную вручную подписку у ${user.username}?`)) return;
+      payload = { action: 'revoke' };
+    } else {
+      // eslint-disable-next-line no-alert
+      const daysText = window.prompt(`На сколько дней выдать подписку пользователю ${user.username}?`, '90');
+      if (daysText === null) return;
+      const days = Number(daysText);
+      if (!Number.isInteger(days) || days < 1 || days > 3650) {
+        setError('Укажите целое число от 1 до 3650 дней');
+        return;
+      }
+      payload = { action: 'grant', expires_at: new Date(Date.now() + days * 86400000).toISOString() };
+    }
+
+    setBusyId(user.id);
+    setError('');
+    try {
+      const { data } = await api.patch(`/admin/users/${user.id}/subscription`, payload);
+      applyUpdate(data.item);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -192,6 +224,9 @@ export default function AdminUsers() {
                     {user.is_banned ? 'Заблокирован' : 'Активен'}
                   </span>
                   <span className="text-neutral-400">{formatDateTime(user.created_at)}</span>
+                  {user.subscription?.is_active && (
+                    <span className="rounded-full bg-amber-100 px-2.5 py-1 font-semibold text-amber-800">Подписчик</span>
+                  )}
                 </div>
 
                 {!isSelf && (
@@ -209,6 +244,11 @@ export default function AdminUsers() {
                     <button type="button" onClick={() => resetPassword(user)} disabled={busyId === user.id} className="btn-ghost text-xs">
                       <KeyRound className="h-4 w-4" aria-hidden="true" />
                       Сменить пароль
+                    </button>
+
+                    <button type="button" onClick={() => changeSubscription(user)} disabled={busyId === user.id} className="btn-ghost text-xs">
+                      <Crown className="h-4 w-4" aria-hidden="true" />
+                      {user.subscription?.source === 'admin' ? 'Отозвать подписку' : 'Выдать подписку'}
                     </button>
 
                     <button
@@ -279,6 +319,9 @@ export default function AdminUsers() {
                         {user.username}
                         {isSelf && <span className="text-xs font-normal text-neutral-400">(вы)</span>}
                       </span>
+                      {user.subscription?.is_active && (
+                        <span className="ml-2 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800">Подписчик</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-neutral-600">{user.email}</td>
                     <td className="px-4 py-3">
@@ -316,6 +359,17 @@ export default function AdminUsers() {
                         <button type="button" onClick={() => resetPassword(user)} disabled={isSelf || busyId === user.id} className="btn-ghost text-xs" title="Задать новый пароль пользователю">
                           <KeyRound className="h-4 w-4" aria-hidden="true" />
                           Сменить пароль
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => changeSubscription(user)}
+                          disabled={isSelf || busyId === user.id}
+                          className="btn-ghost text-xs"
+                          title="Выдать или отозвать выданную вручную подписку"
+                        >
+                          <Crown className="h-4 w-4" aria-hidden="true" />
+                          {user.subscription?.source === 'admin' ? 'Отозвать подписку' : 'Выдать подписку'}
                         </button>
 
                         <button

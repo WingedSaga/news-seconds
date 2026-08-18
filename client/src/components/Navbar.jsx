@@ -5,7 +5,6 @@ import {
   FilePlus2,
   LayoutDashboard,
   LifeBuoy,
-  Heart,
   LogOut,
   Menu,
   Moon,
@@ -19,7 +18,7 @@ import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import Avatar from './Avatar';
 import BrandMark from './BrandMark';
-import { DONATION_URL } from '../constants';
+import SupportButton from './SupportButton';
 import { readStorage, writeStorage } from '../utils/storage';
 
 // Шапка в одну строку: название издания слева, служебные ссылки справа.
@@ -126,16 +125,7 @@ export default function Navbar() {
             </Link>
 
             {/* Пожертвование — внешняя ссылка, поэтому обычный <a>. */}
-            <a
-              href={DONATION_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden"
-              title="Поддержать издание"
-            >
-              <Heart className="h-4 w-4" aria-hidden="true" />
-              Поддержать
-            </a>
+            <SupportButton className="hidden" />
 
             {isAuthenticated ? (
               <>
@@ -216,15 +206,7 @@ export default function Navbar() {
                   <MessageCircle className="h-4 w-4" aria-hidden="true" />
                   Сообщения
                 </a>
-                <a
-                  href={DONATION_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 py-3 text-sm font-semibold text-brand"
-                >
-                  <Heart className="h-4 w-4" aria-hidden="true" />
-                  Поддержать
-                </a>
+                <SupportButton className="flex items-center gap-2 py-3 text-sm font-semibold text-brand" />
                 <button
                   type="button"
                   onClick={() => setTheme((current) => (current === 'dark' ? 'light' : 'dark'))}
@@ -267,15 +249,7 @@ export default function Navbar() {
                   <MessageCircle className="h-4 w-4" aria-hidden="true" />
                   Сообщения
                 </a>
-                <a
-                  href={DONATION_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 py-3 text-sm font-semibold text-brand"
-                >
-                  <Heart className="h-4 w-4" aria-hidden="true" />
-                  Поддержать
-                </a>
+                <SupportButton className="flex items-center gap-2 py-3 text-sm font-semibold text-brand" />
                 <button
                   type="button"
                   onClick={() => setTheme((current) => (current === 'dark' ? 'light' : 'dark'))}
