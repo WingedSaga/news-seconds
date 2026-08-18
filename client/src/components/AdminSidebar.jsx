@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { MonitorSmartphone } from 'lucide-react';
+import { MonitorSmartphone, BadgeCheck } from 'lucide-react';
 import {
   ClipboardList,
   FileStack,
@@ -21,6 +21,7 @@ const LINKS = [
   { to: '/admin/comments', label: 'Комментарии', icon: MessageSquare },
   { to: '/admin/reports', label: 'Жалобы', icon: Flag },
   { to: '/admin/users', label: 'Пользователи', icon: Users },
+  { to: '/admin/subscriptions', label: 'Подписки', icon: BadgeCheck },
   { to: '/admin/support', label: 'Поддержка', icon: LifeBuoy },
   { to: '/admin/logs', label: 'Журнал', icon: ScrollText },
   { to: '/admin/settings', label: 'Управление', icon: SlidersHorizontal },

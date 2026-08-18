@@ -50,6 +50,7 @@ router.patch(
     body('comments_enabled').optional().isBoolean().withMessage('Некорректное значение').toBoolean(),
     body('auto_approve_articles').optional().isBoolean().withMessage('Некорректное значение').toBoolean(),
     body('maintenance_mode').optional().isBoolean().withMessage('Некорректное значение').toBoolean(),
+    body('subscription_features_enabled').optional().isBoolean().withMessage('Некорректное значение').toBoolean(),
     body('site_tagline')
       .optional()
       .trim()

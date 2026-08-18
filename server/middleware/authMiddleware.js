@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const { supabase } = require('../db/supabase');
 const { getSubscriptionEntitlement } = require('../services/subscriptions');
+const { getSetting } = require('../services/settings');
 
 const USER_FIELDS = 'id, username, email, role, avatar_url, is_banned, email_verified, created_at';
 
@@ -21,7 +22,11 @@ async function loadUserFromToken(token) {
 
   if (error) throw error;
   if (!data) return null;
-  return { ...data, subscription: await getSubscriptionEntitlement(data.id) };
+  const [subscription, featuresEnabled] = await Promise.all([
+    getSubscriptionEntitlement(data.id),
+    getSetting('subscription_features_enabled'),
+  ]);
+  return { ...data, subscription: { ...subscription, is_active: subscription.is_active && featuresEnabled !== false } };
 }
 
 // Требует валидный JWT. Отклоняет забаненных пользователей.
