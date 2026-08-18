@@ -37,11 +37,9 @@ jobs:
 
       - name: Сборка
         env:
-          # Основной путь проходит через Cloudflare Worker: он устойчивее в
-          # мобильных браузерах. Прямой туннель Raspberry Pi остаётся запасным.
-          # Pages.dev is the primary route for DuckDuckGo on Android. The client
-          # automatically retries through Worker and Tunnel if this route fails.
-          VITE_API_URL: https://enforcement-recipe-document-boating.trycloudflare.com/api
+          # Стабильная Cloudflare Pages-точка API. Временный trycloudflare.com
+          # остаётся только запасным адресом в axios и не вшивается в сборку.
+          VITE_API_URL: https://news-seconds-api-pages.pages.dev/api
           # Сайт живёт на своём домене (client/public/CNAME), то есть в корне.
           # Для подпапки /<имя-репозитория>/ здесь была бы другая строка.
           VITE_BASE_PATH: /
