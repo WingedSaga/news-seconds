@@ -290,6 +290,14 @@ export default function AdminUsers() {
                     </button>
                   </div>
                 )}
+                {isSelf && (
+                  <div className="flex flex-wrap gap-2 border-t border-neutral-100 pt-3">
+                    <button type="button" onClick={() => changeSubscription(user)} disabled={busyId === user.id} className="btn-ghost text-xs">
+                      <Crown className="h-4 w-4" aria-hidden="true" />
+                      {user.subscription?.source === 'admin' ? 'Отозвать подписку' : 'Выдать подписку'}
+                    </button>
+                  </div>
+                )}
               </li>
             );
           })}
@@ -364,7 +372,7 @@ export default function AdminUsers() {
                         <button
                           type="button"
                           onClick={() => changeSubscription(user)}
-                          disabled={isSelf || busyId === user.id}
+                          disabled={busyId === user.id}
                           className="btn-ghost text-xs"
                           title="Выдать или отозвать выданную вручную подписку"
                         >
