@@ -4,16 +4,16 @@ import { readStorage, removeStorage } from '../utils/storage';
 export const TOKEN_KEY = 'ns_token';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
-const SAME_ORIGIN_FALLBACK_APP = 'https://news-seconds-api-pages.pages.dev/';
-// Запасной прямой маршрут для Safari/iOS, когда браузер или сеть режет workers.dev.
-// Он ведёт в тот же API на Raspberry Pi через исходящий Cloudflare Tunnel.
+// Запасные независимые HTTPS-маршруты к тому же API.
+// Они нужны для редких сбоев конкретного CDN-адреса, но не должны менять
+// адрес открытой пользователем страницы.
 // Independent HTTPS routes to the same API. Mobile browsers occasionally block
 // a specific Cloudflare hostname, so try the remaining routes automatically.
 const API_FALLBACK_URLS = [
-  'https://enforcement-recipe-document-boating.trycloudflare.com/api',
-  'https://wingedsaga.tail7db1c9.ts.net/api',
   'https://news-seconds-api-pages.pages.dev/api',
   'https://news-seconds-api-proxy.news-seconds-api.workers.dev/api',
+  'https://enforcement-recipe-document-boating.trycloudflare.com/api',
+  'https://wingedsaga.tail7db1c9.ts.net/api',
 ];
 
 const api = axios.create({
@@ -49,13 +49,6 @@ api.interceptors.response.use(
         baseURL: fallbackUrl,
         __attemptedApiUrls: [...attemptedUrls, fallbackUrl],
       });
-    }
-
-    // Some privacy browsers block every cross-origin API hostname. The Pages
-    // version serves this SPA and /api from the same origin, so CORS is not
-    // involved there at all.
-    if (shouldUseFallback && window.location.origin !== 'https://news-seconds-api-pages.pages.dev') {
-      window.location.replace(SAME_ORIGIN_FALLBACK_APP);
     }
 
     if (error.response) {
