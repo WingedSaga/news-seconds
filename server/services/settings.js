@@ -10,6 +10,7 @@ const DEFAULTS = {
   site_tagline: 'Новости, анекдоты и погода — каждую секунду',
   site_title: 'НОВОСТИ СЕКУНДЫ',
   maintenance_mode: false,
+  ads: [],
 };
 
 const EDITABLE = Object.keys(DEFAULTS);

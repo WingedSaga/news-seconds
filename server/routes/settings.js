@@ -13,6 +13,7 @@ router.get('/', async (_req, res, next) => {
       site_tagline: values.site_tagline,
       registration_open: values.registration_open,
       comments_enabled: values.comments_enabled,
+      ads: values.ads,
     });
   } catch (err) {
     next(err);

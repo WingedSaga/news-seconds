@@ -1,8 +1,11 @@
+import { useEffect, useState } from 'react';
 import { Loader2, MessageCircle, Pin, Plus, Search, X } from 'lucide-react';
 import useArticleFeed from '../hooks/useArticleFeed';
 import FeedItem from '../components/FeedItem';
 import ErrorMessage from '../components/ErrorMessage';
 import EmptyState from '../components/EmptyState';
+import AdSlot from '../components/AdSlot';
+import api from '../api/axios';
 
 // Заглушка на время загрузки, повторяющая ритм самой ленты.
 function FeedSkeleton() {
@@ -31,6 +34,11 @@ export default function Home() {
   // Категория не передаётся: лента показывает всё, что одобрила редакция.
   const { items, search, setSearch, hasMore, loading, loadingMore, error, loadMore, retry } =
     useArticleFeed();
+  const [ads, setAds] = useState([]);
+
+  useEffect(() => {
+    api.get('/settings').then(({ data }) => setAds(Array.isArray(data.ads) ? data.ads : [])).catch(() => {});
+  }, []);
 
   const [lead, ...rest] = items;
 
@@ -82,6 +90,8 @@ export default function Home() {
 
       <ErrorMessage message={error} onRetry={retry} />
 
+      <div className="mb-7"><AdSlot ads={ads} placement="home_top" /></div>
+
       {loading ? (
         <FeedSkeleton />
       ) : items.length === 0 ? (
@@ -104,6 +114,7 @@ export default function Home() {
             </div>
           )}
           <FeedItem article={lead} variant="hero" />
+          <AdSlot ads={ads} placement="home_after_lead" />
 
           {rest.length > 0 && (
             <div className="grid gap-x-7 gap-y-8 border-t border-neutral-200 pt-9 md:grid-cols-2">
@@ -139,6 +150,7 @@ export default function Home() {
           {!hasMore && (
             <p className="text-center text-sm text-neutral-400">Это все материалы</p>
           )}
+          <AdSlot ads={ads} placement="home_bottom" />
         </div>
       )}
     </div>

@@ -60,6 +60,12 @@ router.patch(
       .trim()
       .isLength({ min: 2, max: 80 })
       .withMessage('Название от 2 до 80 символов'),
+    body('ads').optional().isArray({ max: 6 }).withMessage('Можно добавить до 6 рекламных блоков'),
+    body('ads.*.placement').optional().isIn(['home_top', 'home_after_lead', 'home_bottom']).withMessage('Некорректное место рекламы'),
+    body('ads.*.title').optional().trim().isLength({ max: 90 }).withMessage('Заголовок рекламы не длиннее 90 символов'),
+    body('ads.*.text').optional().trim().isLength({ max: 220 }).withMessage('Текст рекламы не длиннее 220 символов'),
+    body('ads.*.url').optional({ values: 'falsy' }).trim().isURL({ protocols: ['https'], require_protocol: true }).withMessage('Укажите безопасную HTTPS-ссылку'),
+    body('ads.*.enabled').optional().isBoolean().toBoolean(),
   ],
   validate,
   updateSettings
