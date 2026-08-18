@@ -41,6 +41,11 @@ const commentLimiter = createLimiter({
   message: 'Слишком много комментариев. Подождите пять минут.',
 });
 
+// Общий лимит API остаётся для всех. Подписчики получают повышенные лимиты
+// именно на повседневные действия: комментарии и предложения новостей.
+articleLimiter.skip = (req) => Boolean(req.user?.subscription?.is_active);
+commentLimiter.skip = (req) => Boolean(req.user?.subscription?.is_active);
+
 const reportLimiter = createLimiter({
   windowMs: 60 * 60 * 1000,
   max: 10,

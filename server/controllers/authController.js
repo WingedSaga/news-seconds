@@ -6,6 +6,7 @@ const { USER_FIELDS } = require('../middleware/authMiddleware');
 const mailer = require('../services/mailer');
 const settings = require('../services/settings');
 const loginActivity = require('../services/loginActivity');
+const { getSubscriptionEntitlement } = require('../services/subscriptions');
 
 const SALT_ROUNDS = 10;
 const TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
@@ -27,6 +28,7 @@ function publicUser(user) {
     avatar_url: user.avatar_url,
     email_verified: user.email_verified,
     created_at: user.created_at,
+    subscription: user.subscription || { is_active: false, source: null, status: null, expires_at: null },
   };
 }
 
@@ -159,7 +161,8 @@ async function login(req, res, next) {
       console.error('[auth] failed to record login activity:', activityError.message);
     });
 
-    return res.json({ token: signToken(user), user: publicUser(user) });
+    const subscription = await getSubscriptionEntitlement(user.id);
+    return res.json({ token: signToken(user), user: publicUser({ ...user, subscription }) });
   } catch (err) {
     next(err);
   }

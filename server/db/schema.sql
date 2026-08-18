@@ -41,6 +41,17 @@ create table if not exists public.user_subscriptions (
 create index if not exists user_subscriptions_status_idx
   on public.user_subscriptions (status, updated_at desc);
 
+create table if not exists public.subscription_grants (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid not null unique references public.users (id) on delete cascade,
+  granted_by  uuid references public.users (id) on delete set null,
+  expires_at  timestamptz,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+
+create index if not exists subscription_grants_expires_idx on public.subscription_grants (expires_at);
+
 -- Статьи --------------------------------------------------------------------
 create table if not exists public.articles (
   id         uuid primary key default gen_random_uuid(),
@@ -182,6 +193,7 @@ $$;
 -- поэтому анонимный доступ полностью закрыт.
 alter table public.users     enable row level security;
 alter table public.user_subscriptions enable row level security;
+alter table public.subscription_grants enable row level security;
 alter table public.articles  enable row level security;
 alter table public.comments  enable row level security;
 alter table public.content_reports enable row level security;

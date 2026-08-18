@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Check, ImagePlus, Save, Trash2 } from 'lucide-react';
+import { Check, Crown, ImagePlus, Save, Trash2 } from 'lucide-react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import Avatar from '../components/Avatar';
@@ -132,6 +132,12 @@ export default function Profile() {
               {user.role === 'admin' ? 'Администратор' : 'Читатель'} · с{' '}
               {formatDateTime(user.created_at)}
             </p>
+            {user.subscription?.is_active && (
+              <p className="mt-2 inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-800">
+                <Crown className="h-3.5 w-3.5" aria-hidden="true" />
+                Подписчик{user.subscription.expires_at ? ` · до ${formatDateTime(user.subscription.expires_at)}` : ''}
+              </p>
+            )}
           </div>
 
           <div className="flex flex-wrap justify-center gap-2 sm:justify-start">
