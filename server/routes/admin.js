@@ -66,6 +66,7 @@ router.patch(
     body('ads.*.title').optional().trim().isLength({ max: 90 }).withMessage('Заголовок рекламы не длиннее 90 символов'),
     body('ads.*.text').optional().trim().isLength({ max: 220 }).withMessage('Текст рекламы не длиннее 220 символов'),
     body('ads.*.url').optional({ values: 'falsy' }).trim().isURL({ protocols: ['https'], require_protocol: true }).withMessage('Укажите безопасную HTTPS-ссылку'),
+    body('ads.*.image_url').optional({ values: 'falsy' }).trim().isURL({ protocols: ['https'], require_protocol: true }).withMessage('Укажите HTTPS-ссылку на изображение'),
     body('ads.*.enabled').optional().isBoolean().toBoolean(),
   ],
   validate,
