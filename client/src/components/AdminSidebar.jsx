@@ -9,7 +9,7 @@ import {
   LifeBuoy,
   MessageSquare,
   ScrollText,
-  SlidersHorizontal,
+  SlidersHorizontal, Megaphone,
   Users,
 } from 'lucide-react';
 
@@ -24,6 +24,7 @@ const LINKS = [
   { to: '/admin/support', label: 'Поддержка', icon: LifeBuoy },
   { to: '/admin/logs', label: 'Журнал', icon: ScrollText },
   { to: '/admin/settings', label: 'Управление', icon: SlidersHorizontal },
+  { to: '/admin/ads', label: 'Реклама', icon: Megaphone },
 ];
 
 export default function AdminSidebar() {
