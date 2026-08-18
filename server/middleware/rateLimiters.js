@@ -47,4 +47,10 @@ const reportLimiter = createLimiter({
   message: 'Слишком много жалоб. Попробуйте позже.',
 });
 
-module.exports = { apiLimiter, registrationLimiter, articleLimiter, commentLimiter, reportLimiter };
+const checkoutLimiter = createLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: 'Слишком много попыток открыть оплату. Попробуйте позже.',
+});
+
+module.exports = { apiLimiter, registrationLimiter, articleLimiter, commentLimiter, reportLimiter, checkoutLimiter };
