@@ -13,6 +13,9 @@ export default function AdSlot({ ads = [], placement }) {
         <Megaphone className="h-3.5 w-3.5" aria-hidden="true" /> Реклама
       </p>
       <a href={item.url} target="_blank" rel="noreferrer sponsored" className="group block">
+        {item.image_url && (
+          <img src={item.image_url} alt="" loading="lazy" className="mb-3 aspect-[16/7] w-full rounded-xl object-cover" />
+        )}
         <h2 className="text-base font-extrabold text-neutral-900 group-hover:text-brand">{item.title}</h2>
         {item.text && <p className="mt-1 text-sm leading-6 text-neutral-600">{item.text}</p>}
         <span className="mt-3 inline-flex items-center gap-1 text-sm font-bold text-brand">Подробнее <ExternalLink className="h-3.5 w-3.5" /></span>
