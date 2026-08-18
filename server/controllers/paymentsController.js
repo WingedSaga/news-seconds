@@ -5,6 +5,27 @@ function publicSiteUrl() {
   return (process.env.CLIENT_URL || 'https://news-seconds.duckdns.org').replace(/\/$/, '');
 }
 
+async function persistStripeSubscription(subscription, userId, checkoutSessionId = null) {
+  const resolvedUserId = userId || subscription.metadata?.news_seconds_user_id;
+  if (!resolvedUserId) return;
+
+  const record = {
+    user_id: resolvedUserId,
+    stripe_customer_id: String(subscription.customer),
+    stripe_subscription_id: subscription.id,
+    stripe_price_id: subscription.items.data[0]?.price?.id || null,
+    status: subscription.status,
+    current_period_end: subscription.current_period_end
+      ? new Date(subscription.current_period_end * 1000).toISOString()
+      : null,
+    updated_at: new Date().toISOString(),
+  };
+  if (checkoutSessionId) record.stripe_checkout_session_id = checkoutSessionId;
+
+  const { error } = await supabase.from('user_subscriptions').upsert(record, { onConflict: 'user_id' });
+  if (error) throw error;
+}
+
 async function createSubscriptionCheckout(req, res, next) {
   try {
     const stripe = getStripeClient();
@@ -91,22 +112,7 @@ async function handleStripeWebhook(req, res) {
     if (userId && subscriptionId) {
       try {
         const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-        const { error } = await supabase.from('user_subscriptions').upsert(
-          {
-            user_id: userId,
-            stripe_customer_id: String(session.customer),
-            stripe_subscription_id: subscription.id,
-            stripe_checkout_session_id: session.id,
-            stripe_price_id: subscription.items.data[0]?.price?.id || null,
-            status: subscription.status,
-            current_period_end: subscription.current_period_end
-              ? new Date(subscription.current_period_end * 1000).toISOString()
-              : null,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: 'user_id' }
-        );
-        if (error) throw error;
+        await persistStripeSubscription(subscription, userId, session.id);
       } catch (err) {
         console.error('[stripe] failed to persist subscription:', err.message);
         return res.status(500).json({ message: 'Не удалось обработать webhook Stripe' });
@@ -114,6 +120,32 @@ async function handleStripeWebhook(req, res) {
     }
 
     console.info(`[stripe] checkout.session.completed ${session.id}`);
+  }
+
+  if (event.type === 'customer.subscription.updated' || event.type === 'customer.subscription.deleted') {
+    try {
+      await persistStripeSubscription(event.data.object);
+      console.info(`[stripe] ${event.type} ${event.data.object.id}`);
+    } catch (err) {
+      console.error('[stripe] failed to update subscription:', err.message);
+      return res.status(500).json({ message: 'Не удалось обработать webhook Stripe' });
+    }
+  }
+
+  if (event.type === 'invoice.payment_failed') {
+    const subscriptionId = typeof event.data.object.subscription === 'string'
+      ? event.data.object.subscription
+      : event.data.object.subscription?.id;
+    if (subscriptionId) {
+      const { error } = await supabase
+        .from('user_subscriptions')
+        .update({ status: 'past_due', updated_at: new Date().toISOString() })
+        .eq('stripe_subscription_id', subscriptionId);
+      if (error) {
+        console.error('[stripe] failed to mark payment as past due:', error.message);
+        return res.status(500).json({ message: 'Не удалось обработать webhook Stripe' });
+      }
+    }
   }
 
   return res.status(200).json({ received: true });
