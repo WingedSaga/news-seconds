@@ -10,6 +10,7 @@ const DEFAULTS = {
   site_tagline: 'Новости, анекдоты и погода — каждую секунду',
   site_title: 'НОВОСТИ СЕКУНДЫ',
   maintenance_mode: false,
+  subscription_features_enabled: true,
   ads: [],
 };
 
@@ -21,6 +22,7 @@ const BOOLEAN_KEYS = [
   'comments_enabled',
   'auto_approve_articles',
   'maintenance_mode',
+  'subscription_features_enabled',
 ];
 
 // Настройки читаются почти в каждом запросе, поэтому держим короткий кэш:

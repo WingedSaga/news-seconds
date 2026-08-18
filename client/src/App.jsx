@@ -29,6 +29,7 @@ import AdminSupport from './pages/admin/AdminSupport';
 import AdminReports from './pages/admin/AdminReports';
 import AdminLogins from './pages/admin/AdminLogins';
 import AdminAds from './pages/admin/AdminAds';
+import AdminSubscriptions from './pages/admin/AdminSubscriptions';
 
 export default function App() {
   return (
@@ -93,6 +94,7 @@ export default function App() {
         <Route path="pending" element={<AdminPending />} />
         <Route path="articles" element={<AdminArticles />} />
         <Route path="users" element={<AdminUsers />} />
+        <Route path="subscriptions" element={<AdminSubscriptions />} />
         <Route path="comments" element={<AdminComments />} />
         <Route path="reports" element={<AdminReports />} />
         <Route path="support" element={<AdminSupport />} />
