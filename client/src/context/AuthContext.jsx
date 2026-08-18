@@ -77,6 +77,12 @@ export function AuthProvider({ children }) {
     return data.user;
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    const { data } = await api.get('/auth/me');
+    setUser(data.user);
+    return data.user;
+  }, []);
+
   const resendVerification = useCallback(async (email) => {
     const { data } = await api.post('/auth/resend-verification', { email });
     return data;
@@ -91,11 +97,12 @@ export function AuthProvider({ children }) {
       verifyEmail,
       resendVerification,
       updateProfile,
+      refreshUser,
       logout,
       isAuthenticated: Boolean(user),
       isAdmin: user?.role === 'admin',
     }),
-    [user, loading, login, register, verifyEmail, resendVerification, updateProfile, logout]
+    [user, loading, login, register, verifyEmail, resendVerification, updateProfile, refreshUser, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

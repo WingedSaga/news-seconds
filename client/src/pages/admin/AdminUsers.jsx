@@ -10,7 +10,7 @@ import Avatar from '../../components/Avatar';
 import { formatDateTime } from '../../utils/format';
 
 export default function AdminUsers() {
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, refreshUser } = useAuth();
 
   const [items, setItems] = useState([]);
   const [search, setSearch] = useState('');
@@ -163,6 +163,7 @@ export default function AdminUsers() {
     try {
       const { data } = await api.patch(`/admin/users/${user.id}/subscription`, payload);
       applyUpdate(data.item);
+      if (user.id === currentUser?.id) await refreshUser();
     } catch (err) {
       setError(err.message);
     } finally {
