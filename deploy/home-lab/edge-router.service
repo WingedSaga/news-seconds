@@ -1,0 +1,15 @@
+[Unit]
+Description=HomeLab API migration gateway
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/winged/apps/news-seconds
+Environment=PATH=/home/winged/.local/node/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/home/winged/.local/node/bin/node /home/winged/apps/news-seconds/deploy/home-lab/edge-router.js
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
