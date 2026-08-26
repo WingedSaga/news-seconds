@@ -1,0 +1,13 @@
+[Unit]
+Description=Temporary HomeLab public Cloudflare Tunnel
+After=network-online.target edge-router.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/home/winged/.local/bin/cloudflared tunnel --no-autoupdate --url http://127.0.0.1:4300
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
