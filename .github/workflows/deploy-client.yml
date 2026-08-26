@@ -39,7 +39,9 @@ jobs:
         env:
           # Стабильная Cloudflare Pages-точка API. Временный trycloudflare.com
           # остаётся только запасным адресом в axios и не вшивается в сборку.
-          VITE_API_URL: https://news-seconds-api-pages.pages.dev/api
+          # The API runs on the HomeLab.  A repository variable lets the
+          # public tunnel be switched without rebuilding application code.
+          VITE_API_URL: ${{ vars.NEWS_API_URL || 'https://news-seconds-api-pages.pages.dev/api' }}
           # Сайт живёт на своём домене (client/public/CNAME), то есть в корне.
           # Для подпапки /<имя-репозитория>/ здесь была бы другая строка.
           VITE_BASE_PATH: /
