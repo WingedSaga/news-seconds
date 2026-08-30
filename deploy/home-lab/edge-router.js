@@ -1,9 +1,9 @@
 /**
  * Temporary public gateway used during the migration to the HomeLab.
  *
- * The public Tailscale Funnel currently lives on the old Raspberry Pi.  It
- * forwards all HTTPS requests here, while the three applications themselves
- * run on the new HomeLab.  The path prefix selects an API and is removed
+ * Cloudflare Tunnel forwards all HTTPS requests here, while the three
+ * applications themselves run on the HomeLab. The path prefix selects an API
+ * and is removed
  * before the request reaches that API:
  *   /api/...          -> News Seconds (4000)
  *   /messages/api/... -> Messages Seconds (4100)
@@ -57,9 +57,8 @@ const server = http.createServer((request, response) => {
   request.pipe(upstream);
 });
 
-// The temporary Funnel relay is another device on the private LAN, so this
-// gateway must accept that one LAN hop.  It is not exposed directly to the
-// internet; the relay is the only public entry point.
-server.listen(PORT, '0.0.0.0', () => {
+// The Cloudflare connector runs on this same machine. Keep the gateway local
+// so that no device on the home network can call the APIs directly.
+server.listen(PORT, '127.0.0.1', () => {
   console.log(`HomeLab edge router is listening on ${PORT}`);
 });
