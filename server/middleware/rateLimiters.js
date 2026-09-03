@@ -14,7 +14,7 @@ function createLimiter({ windowMs, max, message }) {
 // остаются строже для регистрации, комментариев и других дорогих операций.
 const apiLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 240,
+  max: 120,
   standardHeaders: true,
   legacyHeaders: false,
   skip: (req) => req.method === 'OPTIONS' || req.path === '/health',
@@ -58,4 +58,29 @@ const checkoutLimiter = createLimiter({
   message: 'Слишком много попыток открыть оплату. Попробуйте позже.',
 });
 
-module.exports = { apiLimiter, registrationLimiter, articleLimiter, commentLimiter, reportLimiter, checkoutLimiter };
+// Загрузка файлов особенно затратна для небольшого домашнего сервера:
+// ограничения не позволяют занять память, диск или перекодировщик множеством
+// параллельных файлов. Они применяются после авторизации и отдельно для
+// обычных изображений и тяжёлых аудио/видео.
+const imageUploadLimiter = createLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: 'Слишком много загрузок изображений. Попробуйте через 15 минут.',
+});
+
+const mediaUploadLimiter = createLimiter({
+  windowMs: 60 * 60 * 1000,
+  max: 3,
+  message: 'Можно загрузить не больше трёх аудио или видео за час.',
+});
+
+module.exports = {
+  apiLimiter,
+  registrationLimiter,
+  articleLimiter,
+  commentLimiter,
+  reportLimiter,
+  checkoutLimiter,
+  imageUploadLimiter,
+  mediaUploadLimiter,
+};

@@ -4,6 +4,7 @@ const path = require('path');
 const express = require('express');
 const multer = require('multer');
 const { authMiddleware } = require('../middleware/authMiddleware');
+const { imageUploadLimiter, mediaUploadLimiter } = require('../middleware/rateLimiters');
 const {
   uploadImage,
   uploadMedia,
@@ -26,6 +27,7 @@ const upload = multer({
 router.post(
   '/',
   authMiddleware,
+  imageUploadLimiter,
   (req, res, next) => {
     upload.single('image')(req, res, (err) => {
       if (!err) return next();
@@ -62,6 +64,7 @@ const uploadMediaFile = multer({
 router.post(
   '/media',
   authMiddleware,
+  mediaUploadLimiter,
   (req, res, next) => {
     uploadMediaFile.single('media')(req, res, (err) => {
       if (!err) return next();

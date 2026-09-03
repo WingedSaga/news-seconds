@@ -84,9 +84,12 @@ app.use(notFound);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
+// The public entry point is the local edge router + Cloudflare Tunnel.  The
+// application itself must never be reachable from the LAN or the internet.
+const HOST = process.env.HOST || '127.0.0.1';
+app.listen(PORT, HOST, () => {
   const { isEnabled, provider, verifyConnection } = require('./services/mailer');
-  console.log(`[server] НОВОСТИ СЕКУНДЫ API запущен на порту ${PORT}`);
+  console.log(`[server] НОВОСТИ СЕКУНДЫ API запущен на ${HOST}:${PORT}`);
   console.log(
     `[server] подтверждение почты: ${
       isEnabled

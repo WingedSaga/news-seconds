@@ -34,7 +34,12 @@ const server = http.createServer((request, response) => {
     ? request.url.slice(target.prefix.length) || '/'
     : request.url || '/';
   const headers = { ...request.headers, host: `127.0.0.1:${target.port}` };
-  headers['x-forwarded-for'] = request.socket.remoteAddress || '';
+  // Requests arrive here only from the local Cloudflare Tunnel connector.
+  // Preserve Cloudflare's client address so application rate limits are per
+  // visitor rather than treating all users as the local connector process.
+  const clientIp = request.headers['cf-connecting-ip'];
+  headers['x-forwarded-for'] =
+    typeof clientIp === 'string' && clientIp.trim() ? clientIp.trim() : request.socket.remoteAddress || '';
   headers['x-forwarded-proto'] = 'https';
 
   const upstream = http.request({
